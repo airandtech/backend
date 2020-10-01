@@ -1,6 +1,5 @@
-using AirandWebAPI.Models;
-using AirandWebAPI.Services;
-using Microsoft.AspNetCore.Authorization;
+using AirandWebAPI.Models.Auth;
+using AirandWebAPI.Services.Contract;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Controllers

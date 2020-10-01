@@ -12,9 +12,12 @@ namespace AirandWebAPI.Persistence
         {
             _context = context;
             Users = new UserRepository(_context);
+            Orders = new OrderRepository(_context);
         }
 
         public IUserRepository Users { get; private set; }
+
+        public IOrderRepository Orders { get; private set; }
 
         public int Complete()
         {

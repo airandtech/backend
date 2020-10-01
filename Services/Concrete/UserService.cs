@@ -1,4 +1,4 @@
-using AirandWebAPI.Services;
+using AirandWebAPI.Services.Contract;
 using AirandWebAPI.Core;
 using AirandWebAPI.Core.Domain;
 using System.IdentityModel.Tokens.Jwt;
@@ -8,11 +8,11 @@ using System;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Options;
 using AirandWebAPI.Helpers;
-using AirandWebAPI.Models;
+using AirandWebAPI.Models.Auth;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AirandWebAPI.Services
+namespace AirandWebAPI.Services.Concrete
 {
 
     public class UserService : IUserService

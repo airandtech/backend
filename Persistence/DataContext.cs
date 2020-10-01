@@ -14,5 +14,8 @@ namespace AirandWebAPI.Persistence
         }
 
         public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<Region> Regions { get; set; }
+        public virtual DbSet<Order> Orders { get; set; }
+        public virtual DbSet<DispatchRequestInfo> DispatchRequestInfos { get; set; }
     }
 }

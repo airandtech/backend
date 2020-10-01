@@ -1,6 +1,6 @@
 using AirandWebAPI.Core.Domain;
 
-namespace AirandWebAPI.Models
+namespace AirandWebAPI.Models.Auth
 {
     public class AuthenticateResponse
     {
