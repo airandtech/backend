@@ -28,10 +28,12 @@ namespace AirandWebAPI.Services.Concrete
 
         public AuthenticateResponse Authenticate(AuthenticateRequest model)
         {
-            var user = _unitOfWork.Users.SingleOrDefault(x => x.Username == model.Username && x.Password == model.Password);
+            var user = _unitOfWork.Users.SingleOrDefault(x => x.Username == model.Username);
 
             // return null if user not found
             if (user == null) return null;
+
+            if (!VerifyPasswordHash(model.Password, user.PasswordHash, user.PasswordSalt)) return null;
 
             // authentication successful so generate jwt token
             var token = generateJwtToken(user);
@@ -51,6 +53,52 @@ namespace AirandWebAPI.Services.Concrete
 
         // helper methods
 
+        public AuthenticateResponse Create(User user, string password)
+        {
+
+            byte[] passwordHash, passwordSalt;
+            CreatePasswordHash(password, out passwordHash, out passwordSalt);
+
+            user.DateCreated = DateTime.UtcNow.AddHours(1);
+            user.PasswordHash = passwordHash;
+            user.PasswordSalt = passwordSalt;
+
+            _unitOfWork.Users.Add(user);
+            _unitOfWork.Complete();
+
+            var token = generateJwtToken(user);
+
+            return new AuthenticateResponse(user, token);
+        }
+
+        private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+        {
+
+            using (var hmac = new System.Security.Cryptography.HMACSHA512())
+            {
+                passwordSalt = hmac.Key;
+                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            }
+        }
+
+        private static bool VerifyPasswordHash(string password, byte[] storedHash, byte[] storedSalt)
+        {
+            if (password == null) throw new ArgumentNullException("password");
+            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Value cannot be empty or whitespace only string.", "password");
+            if (storedHash.Length != 64) throw new ArgumentException("Invalid length of password hash (64 bytes expected).", "passwordHash");
+            if (storedSalt.Length != 128) throw new ArgumentException("Invalid length of password salt (128 bytes expected).", "passwordHash");
+
+            using (var hmac = new System.Security.Cryptography.HMACSHA512(storedSalt))
+            {
+                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                for (int i = 0; i < computedHash.Length; i++)
+                {
+                    if (computedHash[i] != storedHash[i]) return false;
+                }
+            }
+
+            return true;
+        }
         private string generateJwtToken(User user)
         {
             // generate token that is valid for 7 days
@@ -68,7 +116,7 @@ namespace AirandWebAPI.Services.Concrete
 
         private List<User> _users = new List<User>
         {
-            new User { Id = 1, FirstName = "Test", LastName = "User", Username = "test", Password = "test" }
+            new User { Id = 1, FirstName = "Test", LastName = "User", Username = "test" }
         };
     }
 }

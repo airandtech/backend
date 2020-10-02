@@ -10,6 +10,7 @@ namespace AirandWebAPI.Services.Contract{
         User GetById(int id);
         AuthenticateResponse Authenticate(AuthenticateRequest model);
         IEnumerable<User> GetAll();
+        AuthenticateResponse Create(User user, string password);
     }
 
 }

@@ -17,6 +17,8 @@ namespace AirandWebAPI.Core.Domain
         public string Token { get; set; }
         
         [JsonIgnore]
-        public string Password {get;set;}
+        public byte[] PasswordHash { get; set; }
+        [JsonIgnore]
+        public byte[] PasswordSalt { get;  set; } 
     }
 }
