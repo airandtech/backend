@@ -44,11 +44,14 @@ namespace AirandWebAPI
             // configure DI for application services
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IOrderService, OrderService>();
-             services.AddScoped<IRegionService, RegionService>();
+            services.AddScoped<IRegionService, RegionService>();
+
+
+            services.AddScoped<INotification, NotificationService>();
 
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            
+
             //validation services
             services.AddScoped<IValidation<RegisterModel>, UserRegistrationValidation>();
             services.AddScoped<IValidation<RideOrderRequest>, DispatchRequestValidation>();
@@ -68,9 +71,9 @@ namespace AirandWebAPI
 
             app.UseAuthentication();
             app.UseAuthorization();
-            
 
-             // global cors policy
+
+            // global cors policy
             app.UseCors(x => x
                 .AllowAnyOrigin()
                 .AllowAnyMethod()

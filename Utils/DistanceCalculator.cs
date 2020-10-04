@@ -17,20 +17,33 @@ namespace AirandWebAPI.Utils
 {
     public static class DistanceCalculator
     {
-        public static async Task Process(
-            Dictionary<string, string> destinations,
+        private static readonly string key = "AIzaSyCnwbX1EzOAP_vNJ5pF2GFk8GycpY8WTBA";
+        public static async Task<DistanceMatrixResponse> Process(
+            Dictionary<int, Coordinates> destinations,
             string sourceLatitude,
             string sourceLongitude)
         {
+            var coordinatesHeaderParams = toHeaderParameters(destinations, sourceLatitude, sourceLongitude);
+            DistanceMatrixResponse distanceMatrix = await getDistances(coordinatesHeaderParams);
 
-            await getDistances(destinations, sourceLatitude, sourceLongitude);
+            return distanceMatrix;
         }
 
-        public static async Task<DistanceMatrixResponse> getDistances(
-            Dictionary<string, string> destinations,
-            string sourceLatitude,
-            string sourceLongitude
-        )
+        private static string toHeaderParameters(Dictionary<int, Coordinates> destinations, string sourceLatitude, string sourceLongitude)
+        {
+            string headers = "origins=";
+            foreach (KeyValuePair<int, Coordinates> entry in destinations)
+            {
+                headers += $"{entry.Value.latitude},{entry.Value.longitude}|";
+            }
+
+            headers = headers.Remove(headers.Length -1, 1);
+            headers = $"{headers}&destinations={sourceLatitude},{sourceLongitude}";
+            return headers;
+
+        }
+
+        private static async Task<DistanceMatrixResponse> getDistances( string coordinatesParams)
         {
             DistanceMatrixResponse distanceMatrix = new DistanceMatrixResponse();
 
@@ -40,8 +53,9 @@ namespace AirandWebAPI.Utils
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+                string headerParams = $"distancematrix/json?{coordinatesParams}&key={key}";
                 // New code:
-                HttpResponseMessage response = await client.GetAsync("api/products/1");
+                HttpResponseMessage response = await client.GetAsync(headerParams);
                 if (response.IsSuccessStatusCode)
                 {
                     string responseString = await response.Content.ReadAsStringAsync();
@@ -50,6 +64,8 @@ namespace AirandWebAPI.Utils
             }
             return distanceMatrix;
         }
+
+
 
 
     }

@@ -10,6 +10,7 @@ namespace AirandWebAPI.Services.Contract{
     {
         Order GetById(int id);
         Task<bool> Order(RideOrderRequest model);
+        Task test();
     }
 
 }

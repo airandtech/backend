@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+using System.Linq;
 using AirandWebAPI.Core.Domain;
 using AirandWebAPI.Core.Repositories;
 using AirandWebAPI.Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace AirandWebAPI.Persistence.Repositories
 {
@@ -9,6 +12,13 @@ namespace AirandWebAPI.Persistence.Repositories
         public RiderRepository(DataContext context) 
             : base(context)
         {
+        }
+
+        public IEnumerable<Rider> GetAllRidersWithUsers()
+        {
+            return DataContext.Riders
+                .Include(c => c.User)
+                .ToList();
         }
         public DataContext DataContext
         {

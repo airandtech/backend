@@ -7,6 +7,7 @@ using AutoMapper;
 using AirandWebAPI.Models;
 using AirandWebAPI.Helpers;
 using AirandWebAPI.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AirandWebAPI.Controllers
 {
@@ -52,6 +53,13 @@ namespace AirandWebAPI.Controllers
                 return StatusCode(500, exceptionHandler);
 
             }
+        }
+
+        [AllowAnonymous]
+        [HttpGet("test")]
+        public async Task<IActionResult> test(){
+            await _orderService.test();
+            return Ok();
         }
 
         
