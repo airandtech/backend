@@ -8,6 +8,7 @@ using System;
 using AirandWebAPI.Exceptions;
 using AirandWebAPI.Helpers;
 using AirandWebAPI.Services;
+using System.Threading.Tasks;
 
 namespace WebApi.Controllers
 {
@@ -41,7 +42,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPost("register")]
-        public IActionResult Register([FromBody] RegisterModel model)
+        public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
             // map model to entity
             var user = _mapper.Map<User>(model);
@@ -50,19 +51,19 @@ namespace WebApi.Controllers
                 ValidationInfo validationInfo = _userValidation.Validate(model);
                 if (validationInfo.isValid())
                 {
-                    AuthenticateResponse response = _userService.Create(user, model.Password);
+                    AuthenticateResponse response = await _userService.Create(user, model.Password);
                     return Ok(response);
                 }
                 else
                 {
                     ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.REGISTRATION_FAILED, validationInfo.getConcatInvalidationNarrations());
-                    return Ok(errorResponse);
+                    return BadRequest(errorResponse);
                 }
             }
             catch (Exception ex)
             {
                 ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
-                return Ok(exceptionHandler);
+                return StatusCode(500, exceptionHandler);
 
             }
         }

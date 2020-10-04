@@ -11,6 +11,7 @@ using AirandWebAPI.Helpers;
 using AirandWebAPI.Models.Auth;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AirandWebAPI.Services.Concrete
 {
@@ -43,18 +44,22 @@ namespace AirandWebAPI.Services.Concrete
 
         public IEnumerable<User> GetAll()
         {
-            return _users;
+            return _unitOfWork.Users.GetAll();
         }
 
         public User GetById(int id)
         {
-            return _users.FirstOrDefault(x => x.Id == id);
+            return _unitOfWork.Users.SingleOrDefault(x => x.Id == id);
         }
 
         // helper methods
 
-        public AuthenticateResponse Create(User user, string password)
-        {
+        public async Task<AuthenticateResponse> Create(User user, string password)
+        {   
+            var token = generateJwtToken(user);
+            var existingUser = _unitOfWork.Users.SingleOrDefault(x => x.Username == user.Username);
+
+            if(existingUser != null) return new AuthenticateResponse(existingUser, token);
 
             byte[] passwordHash, passwordSalt;
             CreatePasswordHash(password, out passwordHash, out passwordSalt);
@@ -64,9 +69,7 @@ namespace AirandWebAPI.Services.Concrete
             user.PasswordSalt = passwordSalt;
 
             _unitOfWork.Users.Add(user);
-            _unitOfWork.Complete();
-
-            var token = generateJwtToken(user);
+            await _unitOfWork.Complete();
 
             return new AuthenticateResponse(user, token);
         }

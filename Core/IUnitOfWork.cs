@@ -1,5 +1,6 @@
 using AirandWebAPI.Core.Repositories;
 using System;
+using System.Threading.Tasks;
 
 namespace AirandWebAPI.Core
 {
@@ -7,6 +8,9 @@ namespace AirandWebAPI.Core
     {
         IUserRepository Users { get; }
         IOrderRepository Orders { get; }
-        int Complete();
+        IRiderRepository Riders { get; }
+        IDispatchRequestInfoRepository DispatchInfo { get; }
+        IRegionRepository Regions { get; }
+        Task<int> Complete();
     }
 }

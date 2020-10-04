@@ -4,8 +4,8 @@ namespace AirandWebAPI
 {
     public class RideOrderRequest
     {
-        public RequestDetails PickUp {get;set;}
-        public IList<RequestDetails> Delivery {get;set;}
+        public RequestInfoDetails PickUp {get;set;}
+        public IList<RequestInfoDetails> Delivery {get;set;}
     }   
 
     public abstract class RequestDetails{
@@ -15,4 +15,8 @@ namespace AirandWebAPI
         public string Email {get;set;}
         public string Phone {get;set;}
     } 
+
+    public class RequestInfoDetails : RequestDetails{
+
+    }
 }

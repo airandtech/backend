@@ -30,7 +30,7 @@ namespace AirandWebAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson();
             services.AddDbContext<DataContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
             );
@@ -43,8 +43,15 @@ namespace AirandWebAPI
 
             // configure DI for application services
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IOrderService, OrderService>();
+             services.AddScoped<IRegionService, RegionService>();
+
+
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            
+            //validation services
             services.AddScoped<IValidation<RegisterModel>, UserRegistrationValidation>();
+            services.AddScoped<IValidation<RideOrderRequest>, DispatchRequestValidation>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,12 +66,9 @@ namespace AirandWebAPI
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            
 
              // global cors policy
             app.UseCors(x => x
@@ -74,6 +78,11 @@ namespace AirandWebAPI
 
             // custom jwt auth middleware
             app.UseMiddleware<JwtMiddleware>();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
         }
     }
 }
