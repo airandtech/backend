@@ -8,6 +8,7 @@ using AirandWebAPI.Models;
 using AirandWebAPI.Helpers;
 using AirandWebAPI.Exceptions;
 using Microsoft.AspNetCore.Authorization;
+using AirandWebAPI.Core.Domain;
 
 namespace AirandWebAPI.Controllers
 {
@@ -44,6 +45,35 @@ namespace AirandWebAPI.Controllers
                 else
                 {
                     ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.FAILED, validationInfo.getConcatInvalidationNarrations());
+                    return BadRequest(errorResponse);
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                return StatusCode(500, exceptionHandler);
+
+            }
+        }
+
+        [HttpGet("accept/{email}")]
+        public async Task<IActionResult> Accept(string email){
+           try
+            {
+                if (!string.IsNullOrWhiteSpace(email))
+                {
+                    //var user = User;
+                    //var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
+                    var user = (User)HttpContext.Items["User"];
+                    int userId = user.Id;
+                    bool response = await _orderService.Accept(email, userId);
+                    if(response)
+                        return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, ResponseMessage.SUCCESSFUL));
+                    return Ok(new GenericResponse<string>(false, ResponseMessage.FAILED, ResponseMessage.FAILED));
+                }
+                else
+                {
+                    ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.FAILED, "Email is required");
                     return BadRequest(errorResponse);
                 }
             }

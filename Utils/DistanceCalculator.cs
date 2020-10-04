@@ -29,6 +29,16 @@ namespace AirandWebAPI.Utils
             return distanceMatrix;
         }
 
+         public static async Task<DirectionResponse> Process(
+            Coordinates source,
+            Coordinates destination)
+        {
+            string coordinatesHeaderParams = $"origin={source.latitude},{source.longitude}&destination={destination.latitude},{destination.longitude}";
+            DirectionResponse distance = await getDistance(coordinatesHeaderParams);
+
+            return distance;
+        }
+
         private static string toHeaderParameters(Dictionary<int, Coordinates> destinations, string sourceLatitude, string sourceLongitude)
         {
             string headers = "origins=";
@@ -63,6 +73,28 @@ namespace AirandWebAPI.Utils
                 }
             }
             return distanceMatrix;
+        }
+
+        private static async Task<DirectionResponse> getDistance( string coordinatesParams)
+        {
+            DirectionResponse distance = new DirectionResponse();
+
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("https://maps.googleapis.com/maps/api/");
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                string headerParams = $"directions/json?{coordinatesParams}&key={key}";
+                // New code:
+                HttpResponseMessage response = await client.GetAsync(headerParams);
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseString = await response.Content.ReadAsStringAsync();
+                    distance = JsonConvert.DeserializeObject<DirectionResponse>(responseString);
+                }
+            }
+            return distance;
         }
 
 

@@ -15,7 +15,7 @@ namespace AirandWebAPI.Core.Domain
         public string Distance {get;set;}
         public string Duration {get;set;}
         public string RiderId {get;set;}
-        //public string RequestorIdentifier {get;set;}
+        public string RequestorIdentifier {get;set;}
         public string Status {get;set;}
     }
 }

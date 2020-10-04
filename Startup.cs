@@ -48,6 +48,7 @@ namespace AirandWebAPI
 
 
             services.AddScoped<INotification, NotificationService>();
+            services.AddScoped<IMailer, MailerService>();
 
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();

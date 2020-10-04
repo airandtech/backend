@@ -7,6 +7,7 @@ using AirandWebAPI.Utils;
 using AirandWebAPI.Services.Contract;
 using AirandWebAPI.Models.Direction;
 using System.Linq;
+using System.IO;
 
 namespace AirandWebAPI.Services.Concrete
 {
@@ -16,12 +17,17 @@ namespace AirandWebAPI.Services.Concrete
         private int skip = 0;
         private IUnitOfWork _unitOfWork;
         private INotification _notification;
+        private IMailer _mailer;
         private IEnumerable<Rider> riders;
 
-        public OrderService(IUnitOfWork unitOfWork, INotification notification)
+        public OrderService(
+            IUnitOfWork unitOfWork, 
+            INotification notification,
+            IMailer mailer)
         {
             _unitOfWork = unitOfWork;
             _notification = notification;
+            _mailer = mailer;
         }
         public Order GetById(int id)
         {
@@ -49,7 +55,7 @@ namespace AirandWebAPI.Services.Concrete
                     order.Cost = PriceCalculator.Process(model.PickUp.RegionCode, item.RegionCode); ///refactor
                     order.Status = "01";
                     order.DateCreated = DateTime.UtcNow + TimeSpan.FromHours(1);
-                    //order.RequestorIdentifier = pickupDetails.Email;
+                    order.RequestorIdentifier = pickupDetails.Email;
                     _unitOfWork.Orders.Add(order);
                     await _unitOfWork.Complete();
                 }
@@ -66,8 +72,98 @@ namespace AirandWebAPI.Services.Concrete
 
         }
 
-        public async Task test(){
-            await processDispatch("musa@mail.com", "ISL001");
+        public async Task<bool> Accept(string requestorEmail, int riderId)
+        {
+            var orders = _unitOfWork.Orders.Find(x => x.RequestorIdentifier.Equals(requestorEmail) && x.Status.Equals("01")).ToList();
+            if (orders != null)
+            {
+                foreach (var item in orders)
+                {
+                    var pickupDetails = _unitOfWork.DispatchInfo.Get(item.PickUpAddressId);
+                    var deliveryDetails = _unitOfWork.DispatchInfo.Get(item.DeliveryAddressId);
+
+                    var pickUpRegion = _unitOfWork.Regions.Find(x => x.Code.Equals(pickupDetails.RegionCode)).FirstOrDefault();
+                    var deliveryRegion = _unitOfWork.Regions.Find(x => x.Code.Equals(deliveryDetails.RegionCode)).FirstOrDefault();
+
+                    var pickUpCoord = new Coordinates(pickUpRegion.Latitude, pickUpRegion.Longitude);
+                    var deliveryCoord = new Coordinates(deliveryRegion.Latitude, deliveryRegion.Longitude);
+
+                    DirectionResponse response = await DistanceCalculator.Process(pickUpCoord, deliveryCoord);
+                    var distanceAndDuration = response.routes[0].legs[0];
+                    var order = _unitOfWork.Orders.Get(item.Id);
+                    order.RiderId = riderId.ToString();
+
+                    //get distance and duration and save
+                    order.Distance = distanceAndDuration.distance.text;
+                    order.Duration = distanceAndDuration.duration.text;
+                    order.Status = "02";
+
+                    await _unitOfWork.Complete();
+                }
+
+                //send email to customer that order has been picked up
+                sendMailToCustomer(requestorEmail, orders);
+                return true;
+            }
+            return false;
+        }
+
+        private async Task sendMailToCustomer(string requestorEmail, List<Order> orders)
+        {
+            string paymentLink = getPaymentLink(orders);
+
+            var folderName = Path.Combine("Resources", "EmailTemplate");
+            var pathToEmailTemplate = Path.Combine(Directory.GetCurrentDirectory(), folderName);
+
+            decimal amount = 0;
+            foreach (var item in orders)
+            {
+                amount += item.Cost;
+            }
+
+
+            using (StreamReader sr = new StreamReader(pathToEmailTemplate + "/DispatchOrder.html"))
+            {
+                var line = await sr.ReadToEndAsync();
+
+                var formattedEmail = string.Format(line, "Dispatch Request", amount.ToString("#,###.00"),paymentLink);
+
+                await _mailer.SendMailAsync(requestorEmail, requestorEmail, "Airand: Dispatch Request", formattedEmail);
+            }
+
+            
+            
+        }
+
+        private string getPaymentLink(List<Order> orders)
+        {
+            if(orders.Count() > 1){
+                return "https://flutterwave.com/pay/abnkqrzycdkt";
+            }
+            var order = orders.FirstOrDefault();
+            switch (order.Cost)
+            {
+                case 1000: 
+                    return "https://flutterwave.com/pay/airand1k";
+                case 1500: 
+                    return "https://flutterwave.com/pay/airand1k5";
+                case 2000:
+                    return "https://flutterwave.com/pay/airand2k";
+                case 2500: 
+                    return "https://flutterwave.com/pay/airand2k5";
+                case 3000:
+                    return "https://flutterwave.com/pay/airand3k";
+                default:
+                    return "https://flutterwave.com/pay/abnkqrzycdkt";
+            }
+        }
+
+        public async Task test()
+        {
+            //string email = "timolor94@gmail.com";
+            //await processDispatch("musa@mail.com", "ISL001");
+            //var orders = _unitOfWork.Orders.Find(x => x.RequestorIdentifier.Equals(email) && x.Status.Equals("01")).ToList();
+            //await sendMailToCustomer(email, orders);
         }
 
         private async Task processDispatch(string requestorEmail, string regionCode)
