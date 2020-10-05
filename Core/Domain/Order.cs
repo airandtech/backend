@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace AirandWebAPI.Core.Domain
@@ -11,6 +12,7 @@ namespace AirandWebAPI.Core.Domain
 
         public int PickUpAddressId { get; set; }
         public DispatchRequestInfo PickUp { get; set; }
+        [Column(TypeName = "decimal(18,4)")]
         public decimal Cost {get;set;}
         public string Distance {get;set;}
         public string Duration {get;set;}

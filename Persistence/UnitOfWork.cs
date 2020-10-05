@@ -17,6 +17,7 @@ namespace AirandWebAPI.Persistence
             Riders = new RiderRepository(_context);
             DispatchInfo = new DispatchRequestInfoRepository(_context);
             Regions = new RegionRepository(_context);
+            Invoices = new InvoiceRepository(_context);
         }
 
         public IUserRepository Users { get; private set; }
@@ -24,6 +25,7 @@ namespace AirandWebAPI.Persistence
         public IRiderRepository Riders { get; private set; }
         public IDispatchRequestInfoRepository DispatchInfo { get; private set; }
         public IRegionRepository Regions { get; private set; }
+        public IInvoiceRepository Invoices { get; private set; }
 
         public async Task<int> Complete()
         {

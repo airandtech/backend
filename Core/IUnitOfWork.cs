@@ -11,6 +11,7 @@ namespace AirandWebAPI.Core
         IRiderRepository Riders { get; }
         IDispatchRequestInfoRepository DispatchInfo { get; }
         IRegionRepository Regions { get; }
+        IInvoiceRepository Invoices { get; }
         Task<int> Complete();
     }
 }

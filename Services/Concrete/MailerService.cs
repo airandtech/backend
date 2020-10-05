@@ -30,7 +30,7 @@ namespace AirandWebAPI.Services
             }.Property(Send.Messages, new JArray {
                 new JObject {
                  {"From", new JObject {
-                  {"Email", "hg@smadeandsmight.com"},
+                  {"Email", "chukwuma@airandtech.com"},
                   {"Name", "Airand"}
                   }},
                  {"To", new JArray {

@@ -8,6 +8,8 @@ using AirandWebAPI.Services.Contract;
 using AirandWebAPI.Models.Direction;
 using System.Linq;
 using System.IO;
+using AirandWebAPI.Models;
+using Newtonsoft.Json;
 
 namespace AirandWebAPI.Services.Concrete
 {
@@ -38,7 +40,6 @@ namespace AirandWebAPI.Services.Concrete
         {
             try
             {
-
                 Order order;
                 DispatchRequestInfo pickupDetails;
                 foreach (var item in model.Delivery)
@@ -68,13 +69,13 @@ namespace AirandWebAPI.Services.Concrete
                 string exMessage = ex.Message;
                 return false;
             }
-
-
         }
 
         public async Task<bool> Accept(string requestorEmail, int riderId)
         {
             var orders = _unitOfWork.Orders.Find(x => x.RequestorIdentifier.Equals(requestorEmail) && x.Status.Equals("01")).ToList();
+            decimal amount = 0;
+            string orderIds = "";
             if (orders != null)
             {
                 foreach (var item in orders)
@@ -98,11 +99,35 @@ namespace AirandWebAPI.Services.Concrete
                     order.Duration = distanceAndDuration.duration.text;
                     order.Status = "02";
 
-                    await _unitOfWork.Complete();
+                    amount += order.Cost;
+
+                    int id = await _unitOfWork.Complete();
+                    orderIds += $"{id},";
                 }
 
+                //create invoice 
+                Invoice invoice = new Invoice(amount, requestorEmail, "01");
+                if(orders.Count == 1) invoice.OrderId = int.Parse(orderIds.Remove(orderIds.Length -1, 1));
+                else invoice.OrderIds = orderIds;
+
+                _unitOfWork.Invoices.Add(invoice);
+                await _unitOfWork.Complete();
+
                 //send email to customer that order has been picked up
-                sendMailToCustomer(requestorEmail, orders);
+                await sendMailToCustomer(requestorEmail, orders);
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> ReceivePayment(FluttterwaveResponse response){
+            var invoice = _unitOfWork.Invoices.Find(x => x.CustomerEmail.Equals(response.data.customer.email)).FirstOrDefault();
+            if(invoice != null){
+                invoice.TransactionId = response.data.id;
+                invoice.AmountPaid = (decimal)(response.data.amount);
+                invoice.Status = "00";
+                invoice.ResponseBody = JsonConvert.SerializeObject(response);
+                await _unitOfWork.Complete();
                 return true;
             }
             return false;
@@ -121,7 +146,6 @@ namespace AirandWebAPI.Services.Concrete
                 amount += item.Cost;
             }
 
-
             using (StreamReader sr = new StreamReader(pathToEmailTemplate + "/DispatchOrder.html"))
             {
                 var line = await sr.ReadToEndAsync();
@@ -130,9 +154,6 @@ namespace AirandWebAPI.Services.Concrete
 
                 await _mailer.SendMailAsync(requestorEmail, requestorEmail, "Airand: Dispatch Request", formattedEmail);
             }
-
-            
-            
         }
 
         private string getPaymentLink(List<Order> orders)

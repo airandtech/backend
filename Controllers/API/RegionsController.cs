@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using AirandWebAPI.Services.Contract;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AirandWebAPI.Controllers
 {
@@ -20,6 +21,7 @@ namespace AirandWebAPI.Controllers
             _mapper = mapper;
         }
 
+        [AllowAnonymous]
         [HttpGet()]
         public IActionResult GetAll()
         {

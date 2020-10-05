@@ -57,17 +57,16 @@ namespace AirandWebAPI.Controllers
         }
 
         [HttpGet("accept/{email}")]
-        public async Task<IActionResult> Accept(string email){
-           try
+        public async Task<IActionResult> Accept(string email)
+        {
+            try
             {
                 if (!string.IsNullOrWhiteSpace(email))
                 {
-                    //var user = User;
-                    //var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
                     var user = (User)HttpContext.Items["User"];
                     int userId = user.Id;
                     bool response = await _orderService.Accept(email, userId);
-                    if(response)
+                    if (response)
                         return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, ResponseMessage.SUCCESSFUL));
                     return Ok(new GenericResponse<string>(false, ResponseMessage.FAILED, ResponseMessage.FAILED));
                 }
@@ -87,11 +86,28 @@ namespace AirandWebAPI.Controllers
 
         [AllowAnonymous]
         [HttpGet("test")]
-        public async Task<IActionResult> test(){
+        public async Task<IActionResult> test()
+        {
             await _orderService.test();
             return Ok();
         }
 
-        
+        [AllowAnonymous]
+        [HttpPost("webhook")]
+        public async Task<IActionResult> FlutterWaveWebHook([FromBody] FluttterwaveResponse response)
+        {
+            try
+            {
+                bool resp = await _orderService.ReceivePayment(response);
+                if (resp) return Ok();
+                return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                return StatusCode(500, exceptionHandler);
+            }
+        }
+
     }
 }
