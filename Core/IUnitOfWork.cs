@@ -1,11 +1,17 @@
 using AirandWebAPI.Core.Repositories;
 using System;
+using System.Threading.Tasks;
 
 namespace AirandWebAPI.Core
 {
     public interface IUnitOfWork : IDisposable
     {
         IUserRepository Users { get; }
-        int Complete();
+        IOrderRepository Orders { get; }
+        IRiderRepository Riders { get; }
+        IDispatchRequestInfoRepository DispatchInfo { get; }
+        IRegionRepository Regions { get; }
+        IInvoiceRepository Invoices { get; }
+        Task<int> Complete();
     }
 }

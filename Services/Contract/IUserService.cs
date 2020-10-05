@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AirandWebAPI.Core.Domain;
-using AirandWebAPI.Models;
+using AirandWebAPI.Models.Auth;
 
-namespace AirandWebAPI.Services{
+namespace AirandWebAPI.Services.Contract{
 
 
     public interface IUserService
@@ -10,6 +11,7 @@ namespace AirandWebAPI.Services{
         User GetById(int id);
         AuthenticateResponse Authenticate(AuthenticateRequest model);
         IEnumerable<User> GetAll();
+        Task<AuthenticateResponse> Create(User user, string password);
     }
 
 }

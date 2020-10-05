@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace AirandWebAPI.Models
+namespace AirandWebAPI.Models.Auth
 {
     public class AuthenticateRequest
     {
