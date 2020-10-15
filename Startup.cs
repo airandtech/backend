@@ -14,6 +14,7 @@ using AirandWebAPI.Core;
 using AirandWebAPI.Services;
 using AirandWebAPI.Models.Auth;
 using TheHangout.Services;
+using AirandWebAPI.Models.Direction;
 
 namespace AirandWebAPI
 {
@@ -45,6 +46,7 @@ namespace AirandWebAPI
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IRegionService, RegionService>();
+            services.AddScoped<ILocationService, LocationService>();
 
 
             services.AddScoped<INotification, NotificationService>();
@@ -56,6 +58,7 @@ namespace AirandWebAPI
             //validation services
             services.AddScoped<IValidation<RegisterModel>, UserRegistrationValidation>();
             services.AddScoped<IValidation<RideOrderRequest>, DispatchRequestValidation>();
+            services.AddScoped<IValidation<Coordinates>, CoordinatesDataValidation>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
