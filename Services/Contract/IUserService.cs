@@ -14,6 +14,7 @@ namespace AirandWebAPI.Services.Contract{
         Task<AuthenticateResponse> Create(User user, string password);
         Task<bool> CheckPhone(string phone);
         Task<bool> VerifyPhone(VerifyPhoneModel model);
+        Task<bool> SaveDeviceToken(string token, int userId);
     }
 
 }

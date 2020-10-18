@@ -170,6 +170,18 @@ namespace AirandWebAPI.Services.Concrete
             return false;
         }
 
+        public async Task<bool> SaveDeviceToken(string token, int userId)
+        {
+            var user = _unitOfWork.Users.Get(userId);
+            if (user != null)
+            {
+                user.Token = token;
+                await _unitOfWork.Complete();
+                return true;
+            }
+            return false;
+        }
+
         private List<User> _users = new List<User>
         {
             new User { Id = 1, FirstName = "Test", LastName = "User", Username = "test" }
