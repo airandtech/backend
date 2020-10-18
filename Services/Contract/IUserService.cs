@@ -12,6 +12,8 @@ namespace AirandWebAPI.Services.Contract{
         AuthenticateResponse Authenticate(AuthenticateRequest model);
         IEnumerable<User> GetAll();
         Task<AuthenticateResponse> Create(User user, string password);
+        Task<bool> CheckPhone(string phone);
+        Task<bool> VerifyPhone(VerifyPhoneModel model);
     }
 
 }

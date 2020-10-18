@@ -75,5 +75,31 @@ namespace WebApi.Controllers
             var users = _userService.GetAll();
             return Ok(users);
         }
+
+        [HttpGet("check-phone/{phone}")]
+        public async Task<IActionResult> CheckPhone(string phone)
+        {
+            if (!string.IsNullOrWhiteSpace(phone))
+            {
+                var isAvailable = await _userService.CheckPhone(phone);
+                if (isAvailable)
+                    return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, "Successful"));
+                return BadRequest(new GenericResponse<string>(false, ResponseMessage.FAILED, ResponseMessage.FAILED));
+            }
+            return BadRequest(new { message = "Phone number is required" });
+        }
+
+        [HttpPost("verify-phone")]
+        public async Task<IActionResult> VerifyPhone(VerifyPhoneModel model)
+        {
+            if (model != null && (!string.IsNullOrWhiteSpace(model.Phone) || !string.IsNullOrWhiteSpace(model.Otp)))
+            {
+                var isAvailable = await _userService.VerifyPhone(model);
+                if (isAvailable)
+                    return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, "Successful"));
+                return BadRequest(new GenericResponse<string>(false, ResponseMessage.FAILED, ResponseMessage.FAILED));
+            }
+            return BadRequest(new { message = "Phone number is required" });
+        }
     }
 }

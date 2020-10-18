@@ -12,6 +12,7 @@ using AirandWebAPI.Models.Auth;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AirandWebAPI.Models;
 
 namespace AirandWebAPI.Services.Concrete
 {
@@ -20,11 +21,13 @@ namespace AirandWebAPI.Services.Concrete
     {
         private IUnitOfWork _unitOfWork;
         private readonly AppSettings _appSettings;
+        private ISmsService _smsService;
 
-        public UserService(IUnitOfWork unitOfWork, IOptions<AppSettings> appSettings)
+        public UserService(IUnitOfWork unitOfWork, IOptions<AppSettings> appSettings, ISmsService smsService)
         {
             _unitOfWork = unitOfWork;
             _appSettings = appSettings.Value;
+            _smsService = smsService;
         }
 
         public AuthenticateResponse Authenticate(AuthenticateRequest model)
@@ -55,11 +58,11 @@ namespace AirandWebAPI.Services.Concrete
         // helper methods
 
         public async Task<AuthenticateResponse> Create(User user, string password)
-        {   
+        {
             var token = generateJwtToken(user);
             var existingUser = _unitOfWork.Users.SingleOrDefault(x => x.Username == user.Username);
 
-            if(existingUser != null) return new AuthenticateResponse(existingUser, token);
+            if (existingUser != null) return new AuthenticateResponse(existingUser, token);
 
             byte[] passwordHash, passwordSalt;
             CreatePasswordHash(password, out passwordHash, out passwordSalt);
@@ -109,7 +112,7 @@ namespace AirandWebAPI.Services.Concrete
             var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] { 
+                Subject = new ClaimsIdentity(new[] {
                     new Claim("id", user.Id.ToString())
                     }),
                 Expires = DateTime.UtcNow.AddYears(7),
@@ -119,9 +122,62 @@ namespace AirandWebAPI.Services.Concrete
             return tokenHandler.WriteToken(token);
         }
 
+        public async Task<bool> CheckPhone(string phone)
+        {
+            var user = _unitOfWork.Users.Find(x => x.Phone.Equals(phone)).FirstOrDefault();
+
+            if (user != null)
+            {
+                var otp = _unitOfWork.Otps.Find(x => x.UserId.Equals(user.Id)).FirstOrDefault();
+                string code = GenerateOtp();
+                string message = $"Airand: Your OTP is {code}. Complete verification using this OTP";
+                SmsBody smsBody = new SmsBody("Airand", user.Phone, message);
+                if (otp != null)
+                {
+                    otp.Code = code;
+                    otp.isUsed = false;
+                    await _smsService.SendAsync(smsBody);
+                    await _unitOfWork.Complete();
+                    return true;
+                }
+                otp = new Otp();
+                otp.Code = code;
+                otp.UserId = user.Id;
+                otp.DateCreated = DateTime.Now;
+                _unitOfWork.Otps.Add(otp);
+                await _unitOfWork.Complete();
+                await _smsService.SendAsync(smsBody);
+                
+
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> VerifyPhone(VerifyPhoneModel model)
+        {
+            var user = _unitOfWork.Users.Find(x => x.Phone.Equals(model.Phone)).FirstOrDefault();
+            if (user != null)
+            {
+                var otp = _unitOfWork.Otps.Find(x => x.UserId.Equals(user.Id) && x.Code.Equals(model.Otp)).FirstOrDefault();
+                if(otp == null || otp.isUsed) return false;
+
+                otp.isUsed = true;
+                await _unitOfWork.Complete();
+                return true;
+            }
+            return false;
+        }
+
         private List<User> _users = new List<User>
         {
             new User { Id = 1, FirstName = "Test", LastName = "User", Username = "test" }
         };
+
+        private string GenerateOtp()
+        {
+            Random random = new Random();
+            return random.Next(100000, 999999).ToString();
+        }
     }
 }
