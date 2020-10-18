@@ -79,43 +79,71 @@ namespace WebApi.Controllers
         [HttpGet("check-phone/{phone}")]
         public async Task<IActionResult> CheckPhone(string phone)
         {
-            if (!string.IsNullOrWhiteSpace(phone))
+            try
             {
-                var isAvailable = await _userService.CheckPhone(phone);
-                if (isAvailable)
-                    return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, "Successful"));
-                return BadRequest(new GenericResponse<string>(false, ResponseMessage.FAILED, "Failed to verify phone number"));
+                if (!string.IsNullOrWhiteSpace(phone))
+                {
+                    var isAvailable = await _userService.CheckPhone(phone);
+                    if (isAvailable)
+                        return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, "Successful"));
+                    return BadRequest(new GenericResponse<string>(false, ResponseMessage.FAILED, "Failed to verify phone number"));
+                }
+                return BadRequest(new { message = "Phone number is required" });
             }
-            return BadRequest(new { message = "Phone number is required" });
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                return StatusCode(500, exceptionHandler);
+
+            }
+
         }
 
         [HttpPost("verify-phone")]
         public async Task<IActionResult> VerifyPhone(VerifyPhoneModel model)
         {
-            if (model != null && (!string.IsNullOrWhiteSpace(model.Phone) || !string.IsNullOrWhiteSpace(model.Otp)))
+            try
             {
-                var isAvailable = await _userService.VerifyPhone(model);
-                if (isAvailable)
-                    return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, "Successful"));
-                return BadRequest(new GenericResponse<string>(false, ResponseMessage.FAILED, "Could not verify phone OTP"));
+                if (model != null && (!string.IsNullOrWhiteSpace(model.Phone) || !string.IsNullOrWhiteSpace(model.Otp)))
+                {
+                    var isAvailable = await _userService.VerifyPhone(model);
+                    if (isAvailable)
+                        return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, "Successful"));
+                    return BadRequest(new GenericResponse<string>(false, ResponseMessage.FAILED, "Could not verify phone OTP"));
+                }
+                return BadRequest(new { message = "Phone number and OTP is required" });
             }
-            return BadRequest(new { message = "Phone number and OTP is required" });
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                return StatusCode(500, exceptionHandler);
+
+            }
         }
 
         [Authorize]
         [HttpGet("save-token/{token}")]
         public async Task<IActionResult> SaveDeviceToken(string token)
         {
-            if (!string.IsNullOrWhiteSpace(token))
+            try
             {
-                var user = (User)HttpContext.Items["User"];
-                int userId = user.Id;
-                var isSuccess = await _userService.SaveDeviceToken(token, userId);
-                if (isSuccess)
-                    return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, "Successful"));
-                return BadRequest(new GenericResponse<string>(false, ResponseMessage.FAILED, ResponseMessage.FAILED));
+                if (!string.IsNullOrWhiteSpace(token))
+                {
+                    var user = (User)HttpContext.Items["User"];
+                    int userId = user.Id;
+                    var isSuccess = await _userService.SaveDeviceToken(token, userId);
+                    if (isSuccess)
+                        return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, "Successful"));
+                    return BadRequest(new GenericResponse<string>(false, ResponseMessage.FAILED, ResponseMessage.FAILED));
+                }
+                return BadRequest(new { message = "Phone number is required" });
             }
-            return BadRequest(new { message = "Phone number is required" });
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                return StatusCode(500, exceptionHandler);
+
+            }
         }
     }
 }
