@@ -84,7 +84,7 @@ namespace WebApi.Controllers
                 var isAvailable = await _userService.CheckPhone(phone);
                 if (isAvailable)
                     return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, "Successful"));
-                return BadRequest(new GenericResponse<string>(false, ResponseMessage.FAILED, ResponseMessage.FAILED));
+                return BadRequest(new GenericResponse<string>(false, ResponseMessage.FAILED, "Failed to verify phone number"));
             }
             return BadRequest(new { message = "Phone number is required" });
         }
@@ -96,6 +96,22 @@ namespace WebApi.Controllers
             {
                 var isAvailable = await _userService.VerifyPhone(model);
                 if (isAvailable)
+                    return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, "Successful"));
+                return BadRequest(new GenericResponse<string>(false, ResponseMessage.FAILED, "Could not verify phone OTP"));
+            }
+            return BadRequest(new { message = "Phone number and OTP is required" });
+        }
+
+        [Authorize]
+        [HttpGet("save-token/{token}")]
+        public async Task<IActionResult> SaveDeviceToken(string token)
+        {
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                var user = (User)HttpContext.Items["User"];
+                int userId = user.Id;
+                var isSuccess = await _userService.SaveDeviceToken(token, userId);
+                if (isSuccess)
                     return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, "Successful"));
                 return BadRequest(new GenericResponse<string>(false, ResponseMessage.FAILED, ResponseMessage.FAILED));
             }
