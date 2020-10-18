@@ -163,6 +163,7 @@ namespace AirandWebAPI.Services.Concrete
                 if(otp == null || otp.isUsed) return false;
 
                 otp.isUsed = true;
+                user.isVerified = true;
                 await _unitOfWork.Complete();
                 return true;
             }

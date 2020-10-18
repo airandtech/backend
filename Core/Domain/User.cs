@@ -15,6 +15,7 @@ namespace AirandWebAPI.Core.Domain
         public string ProfilePicture { get; set; }
         public string Bio { get; set; }
         public string Token { get; set; }
+        public bool isVerified { get; set; }
         
         [JsonIgnore]
         public byte[] PasswordHash { get; set; }
