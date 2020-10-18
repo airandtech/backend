@@ -12,6 +12,7 @@ namespace AirandWebAPI.Core
         IDispatchRequestInfoRepository DispatchInfo { get; }
         IRegionRepository Regions { get; }
         IInvoiceRepository Invoices { get; }
+        IOtpRepository Otps { get; }
         Task<int> Complete();
     }
 }

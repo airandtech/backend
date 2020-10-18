@@ -20,15 +20,18 @@ namespace AirandWebAPI.Controllers
         private IOrderService _orderService;
         private IMapper _mapper;
         private IValidation<RideOrderRequest> _dispatchRequestValidation;
+        private ISmsService _smsService;
         public DispatchController(
             IOrderService orderService,
             IMapper mapper,
-            IValidation<RideOrderRequest> dispatchRequestValidation
+            IValidation<RideOrderRequest> dispatchRequestValidation,
+            ISmsService smsService
         )
         {
             _orderService = orderService;
             _mapper = mapper;
             _dispatchRequestValidation = dispatchRequestValidation;
+            _smsService = smsService;
         }
 
         [HttpPost("order")]
@@ -109,5 +112,28 @@ namespace AirandWebAPI.Controllers
             }
         }
 
+        [HttpPost("send-sms")]
+        public async Task<IActionResult> SendSms([FromBody] SmsBody model)
+        {
+            try
+            {
+                if (model != null && (!string.IsNullOrWhiteSpace(model.from) || !string.IsNullOrWhiteSpace(model.to) || !string.IsNullOrWhiteSpace(model.message)))
+                {
+                    bool response = await _smsService.SendAsync(model);
+                    return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, "Processing"));
+                }
+                else
+                {
+                    ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.FAILED, "Bad Request");
+                    return BadRequest(errorResponse);
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                return StatusCode(500, exceptionHandler);
+
+            }
+        }
     }
 }
