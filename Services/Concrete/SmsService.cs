@@ -28,7 +28,7 @@ namespace AirandWebAPI.Services
 
         public async Task<bool> SendAsync(SmsBody model)
         {
-            static HttpClient client = new HttpClient();
+            HttpClient client = new HttpClient();
             client.BaseAddress = new Uri("https://jusibe.com/smsapi/");
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add( new MediaTypeWithQualityHeaderValue("application/json"));
