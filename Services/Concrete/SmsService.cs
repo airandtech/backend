@@ -19,7 +19,7 @@ namespace AirandWebAPI.Services
 
         private readonly string apiKey = "MmRkYmRjMzA5MmMwZmFmMjNjMGQwYThhY2Q3OTcxOWE6MGM2OWJhNGFiYzk5MjBlMzliNTk4ZmQ2OTEwYjYwYjg=";
 
-        static HttpClient client = new HttpClient();
+        
 
         public SmsService(IOptions<AppSettings> appSettings)
         {
@@ -28,6 +28,7 @@ namespace AirandWebAPI.Services
 
         public async Task<bool> SendAsync(SmsBody model)
         {
+            static HttpClient client = new HttpClient();
             client.BaseAddress = new Uri("https://jusibe.com/smsapi/");
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add( new MediaTypeWithQualityHeaderValue("application/json"));
