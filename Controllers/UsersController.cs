@@ -109,7 +109,7 @@ namespace WebApi.Controllers
                     var isAvailable = await _userService.VerifyPhone(model);
                     if (isAvailable)
                         return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, "Successful"));
-                    return BadRequest(new GenericResponse<string>(false, ResponseMessage.FAILED, "Could not verify phone OTP"));
+                    return BadRequest(new GenericResponse<string>(false, "Could not verify phone OTP", null));
                 }
                 return BadRequest(new { message = "Phone number and OTP is required" });
             }

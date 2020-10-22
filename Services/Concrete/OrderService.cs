@@ -10,6 +10,7 @@ using System.Linq;
 using System.IO;
 using AirandWebAPI.Models;
 using Newtonsoft.Json;
+using AirandWebAPI.Models.Dispatch;
 
 namespace AirandWebAPI.Services.Concrete
 {
@@ -36,11 +37,13 @@ namespace AirandWebAPI.Services.Concrete
             return _unitOfWork.Orders.Get(id);
         }
 
-        public async Task<bool> Order(RideOrderRequest model)
+        public async Task<DispatchResponse> Order(RideOrderRequest model)
         {
             try
             {
                 Order order;
+                decimal totalAmount = 0;
+                List<Order> orders = new List<Order>();
                 DispatchRequestInfo pickupDetails;
                 foreach (var item in model.Delivery)
                 {
@@ -54,20 +57,22 @@ namespace AirandWebAPI.Services.Concrete
                     order.DeliveryAddressId = await _unitOfWork.Complete();
 
                     order.Cost = PriceCalculator.Process(model.PickUp.RegionCode, item.RegionCode); ///refactor
+                    totalAmount += order.Cost;
                     order.Status = "01";
                     order.DateCreated = DateTime.UtcNow + TimeSpan.FromHours(1);
                     order.RequestorIdentifier = pickupDetails.Email;
                     _unitOfWork.Orders.Add(order);
                     await _unitOfWork.Complete();
+                    orders.Add(order);
                 }
                 processDispatch(model.PickUp.Email, model.PickUp.RegionCode);
                 //.ContinueWith(t => Console.WriteLine(t.Exception), TaskContinuationOptions.OnlyOnFaulted);
-                return true;
+                return new DispatchResponse(model.PickUp.Name, totalAmount, this.getPaymentLink(orders));
             }
             catch (Exception ex)
             {
                 string exMessage = ex.Message;
-                return false;
+                return null;
             }
         }
 
@@ -76,6 +81,7 @@ namespace AirandWebAPI.Services.Concrete
             var orders = _unitOfWork.Orders.Find(x => x.RequestorIdentifier.Equals(requestorEmail) && x.Status.Equals("01")).ToList();
             decimal amount = 0;
             string orderIds = "";
+            
             if (orders != null)
             {
                 foreach (var item in orders)
