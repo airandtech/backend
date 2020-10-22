@@ -4,6 +4,7 @@ using AirandWebAPI.Services.Contract;
 using AirandWebAPI.Services;
 using AirandWebAPI.Models.Auth;
 using AirandWebAPI;
+using AirandWebAPI.Models.Dispatch;
 
 namespace TheHangout.Services
 {

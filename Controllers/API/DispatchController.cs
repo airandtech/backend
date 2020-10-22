@@ -4,11 +4,12 @@ using System.Threading.Tasks;
 using AirandWebAPI.Services.Contract;
 using AirandWebAPI.Services;
 using AutoMapper;
-using AirandWebAPI.Models;
+using AirandWebAPI.Models.Dispatch;
 using AirandWebAPI.Helpers;
 using AirandWebAPI.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using AirandWebAPI.Core.Domain;
+using AirandWebAPI.Models;
 
 namespace AirandWebAPI.Controllers
 {
@@ -42,8 +43,10 @@ namespace AirandWebAPI.Controllers
                 ValidationInfo validationInfo = _dispatchRequestValidation.Validate(model);
                 if (validationInfo.isValid())
                 {
-                    bool response = await _orderService.Order(model);
-                    return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, "Processing"));
+                    DispatchResponse response = await _orderService.Order(model);
+                    if(response != null)
+                        return Ok(new GenericResponse<DispatchResponse>(true, ResponseMessage.SUCCESSFUL, response));
+                    return Ok(new GenericResponse<DispatchResponse>(false, ResponseMessage.SUCCESSFUL, response));
                 }
                 else
                 {

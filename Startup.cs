@@ -15,6 +15,7 @@ using AirandWebAPI.Services;
 using AirandWebAPI.Models.Auth;
 using TheHangout.Services;
 using AirandWebAPI.Models.Direction;
+using AirandWebAPI.Models.Dispatch;
 
 namespace AirandWebAPI
 {

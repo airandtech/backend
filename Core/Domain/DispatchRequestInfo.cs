@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using AirandWebAPI.Core.Domain;
+using AirandWebAPI.Models.Dispatch;
 
 namespace AirandWebAPI
 {

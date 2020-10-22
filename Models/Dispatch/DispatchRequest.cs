@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AirandWebAPI
+namespace AirandWebAPI.Models.Dispatch
 {
     public class RideOrderRequest
     {
