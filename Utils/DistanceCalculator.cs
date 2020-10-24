@@ -19,7 +19,7 @@ namespace AirandWebAPI.Utils
     {
         private static readonly string key = "AIzaSyCnwbX1EzOAP_vNJ5pF2GFk8GycpY8WTBA";
         public static async Task<DistanceMatrixResponse> Process(
-            Dictionary<int, Coordinates> destinations,
+            List<DriverCoordinates> destinations,
             string sourceLatitude,
             string sourceLongitude)
         {
@@ -39,12 +39,13 @@ namespace AirandWebAPI.Utils
             return distance;
         }
 
-        private static string toHeaderParameters(Dictionary<int, Coordinates> destinations, string sourceLatitude, string sourceLongitude)
+        private static string toHeaderParameters(List<DriverCoordinates> destinations, string sourceLatitude, string sourceLongitude)
         {
             string headers = "origins=";
-            foreach (KeyValuePair<int, Coordinates> entry in destinations)
+            foreach (var entry in destinations)
             {
-                headers += $"{entry.Value.latitude},{entry.Value.longitude}|";
+                
+                headers += $"{entry.coordinates.latitude},{entry.coordinates.longitude}|";
             }
 
             headers = headers.Remove(headers.Length -1, 1);

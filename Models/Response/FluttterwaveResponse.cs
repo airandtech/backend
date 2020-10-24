@@ -1,6 +1,6 @@
 using System;
 
-namespace AirandWebAPI.Models
+namespace AirandWebAPI.Models.Response
 {
     public class Customer
     {

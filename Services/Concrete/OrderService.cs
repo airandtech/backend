@@ -8,9 +8,10 @@ using AirandWebAPI.Services.Contract;
 using AirandWebAPI.Models.Direction;
 using System.Linq;
 using System.IO;
-using AirandWebAPI.Models;
+using AirandWebAPI.Models.Response;
 using Newtonsoft.Json;
 using AirandWebAPI.Models.Dispatch;
+using Microsoft.WindowsAzure.ServiceRuntime;
 
 namespace AirandWebAPI.Services.Concrete
 {
@@ -56,7 +57,7 @@ namespace AirandWebAPI.Services.Concrete
                     _unitOfWork.DispatchInfo.Add(deliverDetails);
                     order.DeliveryAddressId = await _unitOfWork.Complete();
 
-                    order.Cost = PriceCalculator.Process(model.PickUp.RegionCode, item.RegionCode); ///refactor
+                    order.Cost = PriceCalculator.Process(model.PickUp.AreaCode, item.AreaCode); ///refactor
                     totalAmount += order.Cost;
                     order.Status = "01";
                     order.DateCreated = DateTime.UtcNow + TimeSpan.FromHours(1);
@@ -65,7 +66,7 @@ namespace AirandWebAPI.Services.Concrete
                     await _unitOfWork.Complete();
                     orders.Add(order);
                 }
-                processDispatch(model.PickUp.Email, model.PickUp.RegionCode);
+                processDispatch(model);
                 //.ContinueWith(t => Console.WriteLine(t.Exception), TaskContinuationOptions.OnlyOnFaulted);
                 return new DispatchResponse(model.PickUp.Name, totalAmount, this.getPaymentLink(orders));
             }
@@ -82,15 +83,15 @@ namespace AirandWebAPI.Services.Concrete
             decimal amount = 0;
             string orderIds = "";
             
-            if (orders != null)
+            if (orders != null && orders.Count() > 0)
             {
                 foreach (var item in orders)
                 {
                     var pickupDetails = _unitOfWork.DispatchInfo.Get(item.PickUpAddressId);
                     var deliveryDetails = _unitOfWork.DispatchInfo.Get(item.DeliveryAddressId);
 
-                    var pickUpRegion = _unitOfWork.Regions.Find(x => x.Code.Equals(pickupDetails.RegionCode)).FirstOrDefault();
-                    var deliveryRegion = _unitOfWork.Regions.Find(x => x.Code.Equals(deliveryDetails.RegionCode)).FirstOrDefault();
+                    var pickUpRegion = _unitOfWork.Regions.Find(x => x.AreaCode.Equals(pickupDetails.AreaCode)).FirstOrDefault();
+                    var deliveryRegion = _unitOfWork.Regions.Find(x => x.AreaCode.Equals(deliveryDetails.AreaCode)).FirstOrDefault();
 
                     var pickUpCoord = new Coordinates(pickUpRegion.Latitude, pickUpRegion.Longitude);
                     var deliveryCoord = new Coordinates(deliveryRegion.Latitude, deliveryRegion.Longitude);
@@ -142,9 +143,14 @@ namespace AirandWebAPI.Services.Concrete
         private async Task sendMailToCustomer(string requestorEmail, List<Order> orders)
         {
             string paymentLink = getPaymentLink(orders);
+            
+            // IWebHostEnvironment env
+            LocalResource localResource = RoleEnvironment.GetLocalResource("DownloadedTemplates");
+            string[] paths = { localResource.RootPath, "EmailTemplate"};
+            String pathToEmailTemplate = Path.Combine(paths);
 
-            var folderName = Path.Combine("Resources", "EmailTemplate");
-            var pathToEmailTemplate = Path.Combine(Directory.GetCurrentDirectory(), folderName);
+            // var folderName = Path.Combine("Resources", "EmailTemplate");
+            // var pathToEmailTemplate = Path.Combine(Directory.GetCurrentDirectory(), folderName);
 
             decimal amount = 0;
             foreach (var item in orders)
@@ -193,63 +199,74 @@ namespace AirandWebAPI.Services.Concrete
             //await sendMailToCustomer(email, orders);
         }
 
-        private async Task processDispatch(string requestorEmail, string regionCode)
+        private async Task processDispatch(RideOrderRequest model)
         {
             //get customer details
-            var region = _unitOfWork.Regions.Find(x => x.Code.Equals(regionCode)).FirstOrDefault();
+            var region = _unitOfWork.Regions.Find(x => x.AreaCode.Equals(model.PickUp.AreaCode)).FirstOrDefault();
 
             //get distance between cutomer and riders
-            DistanceMatrixResponse distanceMatrix = await getDistanceFromCustomerToRider(region);
+            (List<DriverCoordinates> driverCoords, DistanceMatrixResponse distanceMatrix) = await getDistanceFromCustomerToRiders(region);
 
             //get the 10 closest riders
-            List<Distance> top10Distances = getTopClosestRiders(distanceMatrix, 10);
+            List<DriverDistance> top10Distances = getTopClosestRiders(driverCoords, distanceMatrix, 10);
 
             //send notification to riders
-            sendRequestToRiders(riders);
+            sendRequestToRiders(top10Distances, model);
         }
 
-        private void sendRequestToRiders(IEnumerable<Rider> riders)
+        private void sendRequestToRiders(List<DriverDistance> ridersDistance, RideOrderRequest model)
         {
-            foreach (var item in riders)
+            _notification.setRequestData(model);
+            foreach (var item in ridersDistance)
             {
-                _notification.SendAsync("Airand", "New Dispatch request", item.User.Token);
+                _notification.setDriverDistance(item);
+                var rider = riders.FirstOrDefault(x => x.Id == item.driverId);
+                _notification.SendAsync("Airand", "New Dispatch request", rider.User.Token);
             }
         }
 
-        private List<Distance> getTopClosestRiders(DistanceMatrixResponse distanceMatrix, int size)
+        private List<DriverDistance> getTopClosestRiders(List<DriverCoordinates> driverCoords, DistanceMatrixResponse distanceMatrix, int size)
         {
             List<Distance> distances = new List<Distance>();
+            List<DriverDistance> driverDistances = new List<DriverDistance>();
             var rows = distanceMatrix.rows;
+            int i = 0;
             foreach (var item in rows)
             {
                 var element = item.elements[0];
+                driverDistances.Add(new DriverDistance(driverCoords[i].driverId, new Distance(element.distance.text, element.distance.value), new Duration(element.duration.text, element.duration.value)));
                 distances.Add(new Distance(element.distance.text, element.distance.value));
+                i++;
             }
-            var topDistances = distances.OrderByDescending(x => x.value).Take(size).ToList();
-            return topDistances;
+            var topDriverDistances = driverDistances.OrderByDescending(x => x.distance.value).Take(size).ToList();
+            //var topDistances = distances.OrderByDescending(x => x.value).Take(size).ToList();
+            return topDriverDistances;
         }
 
-        private async Task<DistanceMatrixResponse> getDistanceFromCustomerToRider(Region region)
+        private async Task<(List<DriverCoordinates>, DistanceMatrixResponse)> getDistanceFromCustomerToRiders(Region region)
         {
             var driversCoordinates = getRidersCoordinates();
 
             DistanceMatrixResponse distanceMatrix =
                 await DistanceCalculator.Process(driversCoordinates, region.Latitude, region.Longitude);
 
-            return distanceMatrix;
+            return (driversCoordinates, distanceMatrix);
         }
 
-        private Dictionary<int, Coordinates> getRidersCoordinates()
+        private List<DriverCoordinates> getRidersCoordinates()
         {
-            Dictionary<int, Coordinates> dict = new Dictionary<int, Coordinates>();
+            //Dictionary<int, Coordinates> dict = new Dictionary<int, Coordinates>();
+            List<DriverCoordinates> driverCoordinates = new List<DriverCoordinates>();
 
             riders = _unitOfWork.Riders.GetAllRidersWithUsers();
 
             foreach (var item in riders)
             {
-                dict.Add(item.Id, new Coordinates(item.Latitude, item.Longitude));
+                driverCoordinates.Add(new DriverCoordinates(item.Id, new Coordinates(item.Latitude, item.Longitude)));
+                //dict.Add(item.Id, new Coordinates(item.Latitude, item.Longitude));
             }
-            return dict;
+            return driverCoordinates;
+            //return dict;
         }
 
         private IEnumerable<Rider> nextRiders(IEnumerable<Rider> riders)

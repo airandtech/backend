@@ -11,6 +11,7 @@ namespace AirandWebAPI.Models.Dispatch
     public abstract class RequestDetails{
         public string Address {get;set;}
         public string RegionCode {get;set;}
+        public string AreaCode {get;set;}
         public string Name {get;set;}
         public string Email {get;set;}
         public string Phone {get;set;}

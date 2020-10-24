@@ -23,14 +23,14 @@ namespace TheHangout.Services
             {
                 var pickUp = model.PickUp;
                 if (string.IsNullOrWhiteSpace(pickUp.Address) || string.IsNullOrWhiteSpace(pickUp.Email) || string.IsNullOrWhiteSpace(pickUp.Name)
-                   || string.IsNullOrWhiteSpace(pickUp.Phone) || string.IsNullOrWhiteSpace(pickUp.RegionCode))
+                   || string.IsNullOrWhiteSpace(pickUp.Phone) || string.IsNullOrWhiteSpace(pickUp.RegionCode) || string.IsNullOrWhiteSpace(pickUp.AreaCode))
                 {
                     validationInfo.addInvalidationNarration("Missing fields in pickup");
                 }
                 foreach (var item in model.Delivery)
                 {
                     if (string.IsNullOrWhiteSpace(item.Address) || string.IsNullOrWhiteSpace(item.Email) || string.IsNullOrWhiteSpace(item.Name)
-                   || string.IsNullOrWhiteSpace(item.Phone) || string.IsNullOrWhiteSpace(item.RegionCode))
+                   || string.IsNullOrWhiteSpace(item.Phone) || string.IsNullOrWhiteSpace(item.RegionCode) || string.IsNullOrWhiteSpace(item.AreaCode))
                     {
                         validationInfo.addInvalidationNarration("Missing fields in delivery");
                         break;
