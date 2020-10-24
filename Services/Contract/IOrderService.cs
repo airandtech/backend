@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AirandWebAPI.Core.Domain;
-using AirandWebAPI.Models;
+using AirandWebAPI.Models.Response;
 using AirandWebAPI.Models.Auth;
 using AirandWebAPI.Models.Dispatch;
 

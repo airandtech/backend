@@ -10,6 +10,7 @@ using AirandWebAPI.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using AirandWebAPI.Core.Domain;
 using AirandWebAPI.Models;
+using AirandWebAPI.Models.Response;
 
 namespace AirandWebAPI.Controllers
 {
@@ -74,11 +75,11 @@ namespace AirandWebAPI.Controllers
                     bool response = await _orderService.Accept(email, userId);
                     if (response)
                         return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, ResponseMessage.SUCCESSFUL));
-                    return Ok(new GenericResponse<string>(false, ResponseMessage.FAILED, ResponseMessage.FAILED));
+                    return Ok(new GenericResponse<string>(false, "Order is no longer available", ResponseMessage.FAILED));
                 }
                 else
                 {
-                    ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.FAILED, "Email is required");
+                    ErrorResponse errorResponse = new ErrorResponse(false, "Email is required", ResponseMessage.FAILED);
                     return BadRequest(errorResponse);
                 }
             }
