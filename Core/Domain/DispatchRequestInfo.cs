@@ -24,6 +24,7 @@ namespace AirandWebAPI
             this.Name = data.Name;
             this.Phone = data.Phone;
             this.RegionCode = data.RegionCode;
+            this.AreaCode = data.AreaCode;
             this.DateCreated = DateTime.UtcNow + TimeSpan.FromHours(1);
         }
     }

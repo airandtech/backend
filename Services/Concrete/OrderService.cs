@@ -57,7 +57,7 @@ namespace AirandWebAPI.Services.Concrete
                     _unitOfWork.DispatchInfo.Add(deliverDetails);
                     order.DeliveryAddressId = await _unitOfWork.Complete();
 
-                    order.Cost = PriceCalculator.Process(model.PickUp.RegionCode, item.RegionCode); ///refactor
+                    order.Cost = PriceCalculator.Process(model.PickUp.AreaCode, item.AreaCode); ///refactor
                     totalAmount += order.Cost;
                     order.Status = "01";
                     order.DateCreated = DateTime.UtcNow + TimeSpan.FromHours(1);
@@ -90,8 +90,8 @@ namespace AirandWebAPI.Services.Concrete
                     var pickupDetails = _unitOfWork.DispatchInfo.Get(item.PickUpAddressId);
                     var deliveryDetails = _unitOfWork.DispatchInfo.Get(item.DeliveryAddressId);
 
-                    var pickUpRegion = _unitOfWork.Regions.Find(x => x.Code.Equals(pickupDetails.RegionCode)).FirstOrDefault();
-                    var deliveryRegion = _unitOfWork.Regions.Find(x => x.Code.Equals(deliveryDetails.RegionCode)).FirstOrDefault();
+                    var pickUpRegion = _unitOfWork.Regions.Find(x => x.AreaCode.Equals(pickupDetails.AreaCode)).FirstOrDefault();
+                    var deliveryRegion = _unitOfWork.Regions.Find(x => x.AreaCode.Equals(deliveryDetails.AreaCode)).FirstOrDefault();
 
                     var pickUpCoord = new Coordinates(pickUpRegion.Latitude, pickUpRegion.Longitude);
                     var deliveryCoord = new Coordinates(deliveryRegion.Latitude, deliveryRegion.Longitude);
@@ -202,7 +202,7 @@ namespace AirandWebAPI.Services.Concrete
         private async Task processDispatch(RideOrderRequest model)
         {
             //get customer details
-            var region = _unitOfWork.Regions.Find(x => x.Code.Equals(model.PickUp.RegionCode)).FirstOrDefault();
+            var region = _unitOfWork.Regions.Find(x => x.AreaCode.Equals(model.PickUp.AreaCode)).FirstOrDefault();
 
             //get distance between cutomer and riders
             (List<DriverCoordinates> driverCoords, DistanceMatrixResponse distanceMatrix) = await getDistanceFromCustomerToRiders(region);
@@ -234,7 +234,7 @@ namespace AirandWebAPI.Services.Concrete
             foreach (var item in rows)
             {
                 var element = item.elements[0];
-                driverDistances.Add(new DriverDistance(driverCoords[i].driverId, new Distance(element.distance.text, element.distance.value)));
+                driverDistances.Add(new DriverDistance(driverCoords[i].driverId, new Distance(element.distance.text, element.distance.value), new Duration(element.duration.text, element.duration.value)));
                 distances.Add(new Distance(element.distance.text, element.distance.value));
                 i++;
             }

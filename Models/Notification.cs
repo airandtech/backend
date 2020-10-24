@@ -27,6 +27,7 @@ namespace AirandWebAPI.Models
             this.requestorName = requestData.PickUp.Name;
             this.address = requestData.PickUp.Address;
             this.distance = driverDistance.distance.text;
+            this.time = driverDistance.duration.text;
         }
 
         public string requestorEmail { get; set; }

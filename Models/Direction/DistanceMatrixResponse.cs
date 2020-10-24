@@ -18,6 +18,12 @@ namespace AirandWebAPI.Models.Direction
     {
         public string text { get; set; }
         public int value { get; set; }
+
+        public Duration() {}
+        public Duration(string text, int value) {
+            this.text = text;
+            this.value = value;
+        }
     }
 
     public class Element
