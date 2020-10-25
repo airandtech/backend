@@ -15,6 +15,7 @@ namespace AirandWebAPI.Services.Contract{
         Task<bool> Accept(string requestorEmail, int riderId);
         Task<bool> ReceivePayment(FluttterwaveResponse response);
         Task test();
+        RiderOrders GetOrders(int userId);
     }
 
 }

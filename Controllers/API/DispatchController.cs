@@ -45,7 +45,7 @@ namespace AirandWebAPI.Controllers
                 if (validationInfo.isValid())
                 {
                     DispatchResponse response = await _orderService.Order(model);
-                    if(response != null)
+                    if (response != null)
                         return Ok(new GenericResponse<DispatchResponse>(true, ResponseMessage.SUCCESSFUL, response));
                     return Ok(new GenericResponse<DispatchResponse>(false, ResponseMessage.SUCCESSFUL, response));
                 }
@@ -131,6 +131,29 @@ namespace AirandWebAPI.Controllers
                     ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.FAILED, "Bad Request");
                     return BadRequest(errorResponse);
                 }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                return StatusCode(500, exceptionHandler);
+
+            }
+        }
+
+        [HttpGet("orders/fetch")]
+        public IActionResult GetOrders()
+        {
+            try
+            {
+                var user = (User)HttpContext.Items["User"];
+                int userId = user.Id;
+
+                RiderOrders riderOrders =  _orderService.GetOrders(userId);
+                if( riderOrders != null && (riderOrders.completed.Count > 0 || riderOrders.pending.Count > 0 || riderOrders.inProgress.Count > 0)) {
+                    return Ok(new GenericResponse<RiderOrders>(true, ResponseMessage.SUCCESSFUL, riderOrders));
+                }
+                return Ok(new GenericResponse<RiderOrders>(false, ResponseMessage.NO_RESULTS, null));
+
             }
             catch (Exception ex)
             {

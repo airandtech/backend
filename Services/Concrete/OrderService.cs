@@ -140,6 +140,20 @@ namespace AirandWebAPI.Services.Concrete
             return false;
         }
 
+        public RiderOrders GetOrders(int userId)
+        {
+            RiderOrders riderOrders = new RiderOrders();
+            // var rider = _unitOfWork.Riders.Find(x => x.UserId.Equals(userId)).FirstOrDefault();
+            // if(rider != null){
+                var dispatchDetails = _unitOfWork.DispatchInfo.GetAll();
+                var orders = _unitOfWork.Orders.Find(x => x.RiderId == userId.ToString()).ToList();
+                var orderWithDetails = GetOrderWithDetails(orders, dispatchDetails);
+                riderOrders.completed = orderWithDetails.Where(x => x.Status.Equals("00")).ToList();
+                riderOrders.inProgress = orderWithDetails.Where(x => x.Status.Equals("02")).ToList();
+                riderOrders.pending = orderWithDetails.Where(x => x.Status.Equals("01")).ToList();
+            //}
+            return riderOrders;
+        }
         private async Task sendMailToCustomer(string requestorEmail, List<Order> orders)
         {
             string paymentLink = getPaymentLink(orders);
@@ -275,6 +289,22 @@ namespace AirandWebAPI.Services.Concrete
             nextRiders = riders.Skip(skip).Take(take);
             skip += 10;
             return nextRiders;
+        }
+    
+        private List<Order> GetOrderWithDetails(List<Order> orders, IEnumerable<DispatchRequestInfo> details){
+
+            List<Order> ordersList = new List<Order>();
+             Order order;
+            foreach (var item in orders)
+            {
+                order = new Order();
+                item.PickUp = details.FirstOrDefault(x => x.Id == item.PickUpAddressId);
+                item.Delivery = details.FirstOrDefault(x => x.Id == item.DeliveryAddressId);
+                order = item;
+                ordersList.Add(order);
+            }
+
+            return ordersList;
         }
     }
 }

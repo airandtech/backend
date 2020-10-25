@@ -12,6 +12,7 @@ namespace AirandWebAPI.Core.Domain
 
         public int PickUpAddressId { get; set; }
         public DispatchRequestInfo PickUp { get; set; }
+        
         [Column(TypeName = "decimal(18,4)")]
         public decimal Cost {get;set;}
         public string Distance {get;set;}
