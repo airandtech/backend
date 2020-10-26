@@ -22,18 +22,21 @@ namespace AirandWebAPI.Controllers
         private IOrderService _orderService;
         private IMapper _mapper;
         private IValidation<RideOrderRequest> _dispatchRequestValidation;
+        private IValidation<ChangeStatusVM> _changeStatusValidation;
         private ISmsService _smsService;
         public DispatchController(
             IOrderService orderService,
             IMapper mapper,
             IValidation<RideOrderRequest> dispatchRequestValidation,
-            ISmsService smsService
+            ISmsService smsService,
+            IValidation<ChangeStatusVM> changeStatusValidation
         )
         {
             _orderService = orderService;
             _mapper = mapper;
             _dispatchRequestValidation = dispatchRequestValidation;
             _smsService = smsService;
+            _changeStatusValidation = changeStatusValidation;
         }
 
         [HttpPost("order")]
@@ -148,8 +151,9 @@ namespace AirandWebAPI.Controllers
                 var user = (User)HttpContext.Items["User"];
                 int userId = user.Id;
 
-                RiderOrders riderOrders =  _orderService.GetOrders(userId);
-                if( riderOrders != null && (riderOrders.completed.Count > 0 || riderOrders.pending.Count > 0 || riderOrders.inProgress.Count > 0)) {
+                RiderOrders riderOrders = _orderService.GetOrders(userId);
+                if (riderOrders != null && (riderOrders.completed.Count > 0 || riderOrders.pending.Count > 0 || riderOrders.inProgress.Count > 0))
+                {
                     return Ok(new GenericResponse<RiderOrders>(true, ResponseMessage.SUCCESSFUL, riderOrders));
                 }
                 return Ok(new GenericResponse<RiderOrders>(false, ResponseMessage.NO_RESULTS, null));
@@ -162,5 +166,44 @@ namespace AirandWebAPI.Controllers
 
             }
         }
+
+        [HttpPost("orders/status/change")]
+        public IActionResult ChangeStatus([FromBody] ChangeStatusVM model)
+        {
+            try
+            {
+                var user = (User)HttpContext.Items["User"];
+                int userId = user.Id;
+                ValidationInfo validationInfo = _changeStatusValidation.Validate(model);
+                if (validationInfo.isValid())
+                {
+                    bool isSuccessful = _orderService.ChangeStatus(model);
+                    if (isSuccessful)
+                    {
+                        RiderOrders riderOrders = _orderService.GetOrders(userId);
+                        if (riderOrders != null && (riderOrders.completed.Count > 0 || riderOrders.pending.Count > 0 || riderOrders.inProgress.Count > 0))
+                        {
+                            return Ok(new GenericResponse<RiderOrders>(true, ResponseMessage.SUCCESSFUL, riderOrders));
+                        }
+                        return Ok(new GenericResponse<RiderOrders>(false, ResponseMessage.NO_RESULTS, null));
+                    }
+
+                    return Ok(new GenericResponse<string>(false, ResponseMessage.FAILED, ResponseMessage.FAILED));
+                }
+                else
+                {
+                    ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.FAILED, validationInfo.getConcatInvalidationNarrations());
+                    return BadRequest(errorResponse);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                return StatusCode(500, exceptionHandler);
+
+            }
+        }
+
     }
 }
