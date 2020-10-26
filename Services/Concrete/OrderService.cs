@@ -12,6 +12,7 @@ using AirandWebAPI.Models.Response;
 using Newtonsoft.Json;
 using AirandWebAPI.Models.Dispatch;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using PazarWebApi.Core.Domain;
 
 namespace AirandWebAPI.Services.Concrete
 {
@@ -25,7 +26,7 @@ namespace AirandWebAPI.Services.Concrete
         private IEnumerable<Rider> riders;
 
         public OrderService(
-            IUnitOfWork unitOfWork, 
+            IUnitOfWork unitOfWork,
             INotification notification,
             IMailer mailer)
         {
@@ -59,7 +60,7 @@ namespace AirandWebAPI.Services.Concrete
 
                     order.Cost = PriceCalculator.Process(model.PickUp.AreaCode, item.AreaCode); ///refactor
                     totalAmount += order.Cost;
-                    order.Status = "01";
+                    order.Status = OrderStatus.Pending;
                     order.DateCreated = DateTime.UtcNow + TimeSpan.FromHours(1);
                     order.RequestorIdentifier = pickupDetails.Email;
                     _unitOfWork.Orders.Add(order);
@@ -79,10 +80,10 @@ namespace AirandWebAPI.Services.Concrete
 
         public async Task<bool> Accept(string requestorEmail, int riderId)
         {
-            var orders = _unitOfWork.Orders.Find(x => x.RequestorIdentifier.Equals(requestorEmail) && x.Status.Equals("01")).ToList();
+            var orders = _unitOfWork.Orders.Find(x => x.RequestorIdentifier.Equals(requestorEmail) && x.Status.Equals(OrderStatus.Pending)).ToList();
             decimal amount = 0;
             string orderIds = "";
-            
+
             if (orders != null && orders.Count() > 0)
             {
                 foreach (var item in orders)
@@ -104,7 +105,7 @@ namespace AirandWebAPI.Services.Concrete
                     //get distance and duration and save
                     order.Distance = distanceAndDuration.distance.text;
                     order.Duration = distanceAndDuration.duration.text;
-                    order.Status = "02";
+                    order.Status = OrderStatus.Completed;
 
                     amount += order.Cost;
 
@@ -113,8 +114,8 @@ namespace AirandWebAPI.Services.Concrete
                 }
 
                 //create invoice 
-                Invoice invoice = new Invoice(amount, requestorEmail, "01");
-                if(orders.Count == 1) invoice.OrderId = int.Parse(orderIds.Remove(orderIds.Length -1, 1));
+                Invoice invoice = new Invoice(amount, requestorEmail, OrderStatus.Pending);
+                if (orders.Count == 1) invoice.OrderId = int.Parse(orderIds.Remove(orderIds.Length - 1, 1));
                 else invoice.OrderIds = orderIds;
 
                 _unitOfWork.Invoices.Add(invoice);
@@ -127,12 +128,14 @@ namespace AirandWebAPI.Services.Concrete
             return false;
         }
 
-        public async Task<bool> ReceivePayment(FluttterwaveResponse response){
+        public async Task<bool> ReceivePayment(FluttterwaveResponse response)
+        {
             var invoice = _unitOfWork.Invoices.Find(x => x.CustomerEmail.Equals(response.data.customer.email)).FirstOrDefault();
-            if(invoice != null){
+            if (invoice != null)
+            {
                 invoice.TransactionId = response.data.id;
                 invoice.AmountPaid = (decimal)(response.data.amount);
-                invoice.Status = "00";
+                invoice.Status = OrderStatus.Completed;
                 invoice.ResponseBody = JsonConvert.SerializeObject(response);
                 await _unitOfWork.Complete();
                 return true;
@@ -145,22 +148,34 @@ namespace AirandWebAPI.Services.Concrete
             RiderOrders riderOrders = new RiderOrders();
             // var rider = _unitOfWork.Riders.Find(x => x.UserId.Equals(userId)).FirstOrDefault();
             // if(rider != null){
-                var dispatchDetails = _unitOfWork.DispatchInfo.GetAll();
-                var orders = _unitOfWork.Orders.Find(x => x.RiderId == userId.ToString()).ToList();
-                var orderWithDetails = GetOrderWithDetails(orders, dispatchDetails);
-                riderOrders.completed = orderWithDetails.Where(x => x.Status.Equals("00")).ToList();
-                riderOrders.inProgress = orderWithDetails.Where(x => x.Status.Equals("02")).ToList();
-                riderOrders.pending = orderWithDetails.Where(x => x.Status.Equals("01")).ToList();
+            var dispatchDetails = _unitOfWork.DispatchInfo.GetAll();
+            var orders = _unitOfWork.Orders.Find(x => x.RiderId == userId.ToString()).ToList();
+            var orderWithDetails = getOrderWithDetails(orders, dispatchDetails);
+            riderOrders.completed = orderWithDetails.Where(x => x.Status.Equals(OrderStatus.Completed)).ToList();
+            riderOrders.inProgress = orderWithDetails.Where(x => x.Status.Equals(OrderStatus.InProgress)).ToList();
+            riderOrders.pending = orderWithDetails.Where(x => x.Status.Equals(OrderStatus.Pending)).ToList();
             //}
             return riderOrders;
+        }
+
+        public bool ChangeStatus(ChangeStatusVM model)
+        {
+            var order = _unitOfWork.Orders.Get(int.Parse(model.orderId));
+            if (order != null)
+            {
+                order.Status = OrderStatus.GetStatusFromCode(model.status);
+                _unitOfWork.Complete();
+                return true;
+            }
+            return false;
         }
         private async Task sendMailToCustomer(string requestorEmail, List<Order> orders)
         {
             string paymentLink = getPaymentLink(orders);
-            
+
             // IWebHostEnvironment env
             LocalResource localResource = RoleEnvironment.GetLocalResource("DownloadedTemplates");
-            string[] paths = { localResource.RootPath, "EmailTemplate"};
+            string[] paths = { localResource.RootPath, "EmailTemplate" };
             String pathToEmailTemplate = Path.Combine(paths);
 
             // var folderName = Path.Combine("Resources", "EmailTemplate");
@@ -176,27 +191,27 @@ namespace AirandWebAPI.Services.Concrete
             {
                 var line = await sr.ReadToEndAsync();
 
-                var formattedEmail = string.Format(line, "Dispatch Request", amount.ToString("#,###.00"),paymentLink);
+                var formattedEmail = string.Format(line, "Dispatch Request", amount.ToString("#,###.00"), paymentLink);
 
                 await _mailer.SendMailAsync(requestorEmail, requestorEmail, "Airand: Dispatch Request", formattedEmail);
             }
         }
-
         private string getPaymentLink(List<Order> orders)
         {
-            if(orders.Count() > 1){
+            if (orders.Count() > 1)
+            {
                 return "https://flutterwave.com/pay/abnkqrzycdkt";
             }
             var order = orders.FirstOrDefault();
             switch (order.Cost)
             {
-                case 1000: 
+                case 1000:
                     return "https://flutterwave.com/pay/airand1k";
-                case 1500: 
+                case 1500:
                     return "https://flutterwave.com/pay/airand1k5";
                 case 2000:
                     return "https://flutterwave.com/pay/airand2k";
-                case 2500: 
+                case 2500:
                     return "https://flutterwave.com/pay/airand2k5";
                 case 3000:
                     return "https://flutterwave.com/pay/airand3k";
@@ -204,7 +219,6 @@ namespace AirandWebAPI.Services.Concrete
                     return "https://flutterwave.com/pay/abnkqrzycdkt";
             }
         }
-
         public async Task test()
         {
             //string email = "timolor94@gmail.com";
@@ -290,11 +304,12 @@ namespace AirandWebAPI.Services.Concrete
             skip += 10;
             return nextRiders;
         }
-    
-        private List<Order> GetOrderWithDetails(List<Order> orders, IEnumerable<DispatchRequestInfo> details){
+
+        private List<Order> getOrderWithDetails(List<Order> orders, IEnumerable<DispatchRequestInfo> details)
+        {
 
             List<Order> ordersList = new List<Order>();
-             Order order;
+            Order order;
             foreach (var item in orders)
             {
                 order = new Order();
