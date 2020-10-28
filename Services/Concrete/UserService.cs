@@ -32,7 +32,7 @@ namespace AirandWebAPI.Services.Concrete
 
         public AuthenticateResponse Authenticate(AuthenticateRequest model)
         {
-            var user = _unitOfWork.Users.SingleOrDefault(x => (x.Username == model.Username || x.Phone == model.Username));
+            var user = _unitOfWork.Users.Find(x => (x.Username == model.Username || x.Phone == model.Username)).FirstOrDefault();
 
             // return null if user not found
             if (user == null) return null;
