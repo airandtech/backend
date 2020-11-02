@@ -19,7 +19,7 @@ namespace AirandWebAPI.Services
 
         private readonly string apiKey = "AAAAeVEOA94:APA91bGXoaBNHuLvmKCFZ5TvL4M9kFVdSvOiR4hbYCo2gR4IRA1EpnLb-PSTCXFgQ6E_0QKFd8J3lP_2slQVoxdwM688L1ZEVXvpCZfCAGEUuoHuqoGLw8CVa3dDjH-gCYUfU6gfO_wN";
 
-        static HttpClient client = new HttpClient();
+     
 
         private static RideOrderRequest requestData;
         private static DriverDistance driverDistance;
@@ -40,6 +40,7 @@ namespace AirandWebAPI.Services
 
         public async Task<bool> SendAsync(string title, string message, string mobile_token)
         {
+            HttpClient client = new HttpClient();
             if(requestData == null) return false;
             
             client.BaseAddress = new Uri("https://fcm.googleapis.com/fcm/");
