@@ -67,7 +67,7 @@ namespace AirandWebAPI.Services.Concrete
                     await _unitOfWork.Complete();
                     orders.Add(order);
                 }
-                processDispatch(model);
+                await processDispatch(model);
                 //.ContinueWith(t => Console.WriteLine(t.Exception), TaskContinuationOptions.OnlyOnFaulted);
                 return new DispatchResponse(model.PickUp.Name, totalAmount, this.getPaymentLink(orders));
             }
@@ -239,17 +239,17 @@ namespace AirandWebAPI.Services.Concrete
             List<DriverDistance> top10Distances = getTopClosestRiders(driverCoords, distanceMatrix, 10);
 
             //send notification to riders
-            sendRequestToRiders(top10Distances, model);
+            await sendRequestToRiders(top10Distances, model);
         }
 
-        private void sendRequestToRiders(List<DriverDistance> ridersDistance, RideOrderRequest model)
+        private async Task sendRequestToRiders(List<DriverDistance> ridersDistance, RideOrderRequest model)
         {
             _notification.setRequestData(model);
             foreach (var item in ridersDistance)
             {
                 _notification.setDriverDistance(item);
                 var rider = riders.FirstOrDefault(x => x.Id == item.driverId);
-                _notification.SendAsync("Airand", "New Dispatch request", rider.User.Token);
+                await _notification.SendAsync("Airand", "New Dispatch request", rider.User.Token);
             }
         }
 
@@ -273,12 +273,12 @@ namespace AirandWebAPI.Services.Concrete
 
         private async Task<(List<DriverCoordinates>, DistanceMatrixResponse)> getDistanceFromCustomerToRiders(Region region)
         {
-            var driversCoordinates = getRidersCoordinates();
+            var ridersCoordinates = getRidersCoordinates();
 
             DistanceMatrixResponse distanceMatrix =
-                await DistanceCalculator.Process(driversCoordinates, region.Latitude, region.Longitude);
+                await DistanceCalculator.Process(ridersCoordinates, region.Latitude, region.Longitude);
 
-            return (driversCoordinates, distanceMatrix);
+            return (ridersCoordinates, distanceMatrix);
         }
 
         private List<DriverCoordinates> getRidersCoordinates()
