@@ -16,6 +16,8 @@ using AirandWebAPI.Models.Auth;
 using TheHangout.Services;
 using AirandWebAPI.Models.Direction;
 using AirandWebAPI.Models.Dispatch;
+using Microsoft.Extensions.FileProviders;
+using System.IO;
 
 namespace AirandWebAPI
 {
@@ -92,6 +94,13 @@ namespace AirandWebAPI
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+            });
+
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(
+                    Path.Combine(Directory.GetCurrentDirectory(), "Resources")),
+                RequestPath = "/Assets"
             });
         }
     }
