@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
@@ -171,29 +172,38 @@ namespace AirandWebAPI.Services.Concrete
         }
         private async Task sendMailToCustomer(string requestorEmail, List<Order> orders)
         {
-            string paymentLink = getPaymentLink(orders);
-
-            // IWebHostEnvironment env
-            LocalResource localResource = RoleEnvironment.GetLocalResource("Resources");
-            string[] paths = { localResource.RootPath, "EmailTemplate" };
-            String pathToEmailTemplate = Path.Combine(paths);
-
-            // var folderName = Path.Combine("Resources", "EmailTemplate");
-            // var pathToEmailTemplate = Path.Combine(Directory.GetCurrentDirectory(), folderName);
-
-            decimal amount = 0;
-            foreach (var item in orders)
+            try
             {
-                amount += item.Cost;
+                string paymentLink = getPaymentLink(orders);
+
+                // IWebHostEnvironment env
+                LocalResource localResource = RoleEnvironment.GetLocalResource("Resources");
+                string[] paths = { localResource.RootPath, "EmailTemplate" };
+                String pathToEmailTemplate = Path.Combine(paths);
+
+                // var folderName = Path.Combine("Resources", "EmailTemplate");
+                // var pathToEmailTemplate = Path.Combine(Directory.GetCurrentDirectory(), folderName);
+
+                decimal amount = 0;
+                foreach (var item in orders)
+                {
+                    amount += item.Cost;
+                }
+
+                using (StreamReader sr = new StreamReader(pathToEmailTemplate + "/DispatchOrder.html"))
+                {
+                    var line = await sr.ReadToEndAsync();
+
+                    var formattedEmail = string.Format(line, "Dispatch Request", amount.ToString("#,###.00"), paymentLink);
+
+                    await _mailer.SendMailAsync(requestorEmail, requestorEmail, "Airand: Dispatch Request", formattedEmail);
+                }
             }
-
-            using (StreamReader sr = new StreamReader(pathToEmailTemplate + "/DispatchOrder.html"))
+            catch (Exception ex)
             {
-                var line = await sr.ReadToEndAsync();
-
-                var formattedEmail = string.Format(line, "Dispatch Request", amount.ToString("#,###.00"), paymentLink);
-
-                await _mailer.SendMailAsync(requestorEmail, requestorEmail, "Airand: Dispatch Request", formattedEmail);
+                string exMessage = ex.Message;
+                Debug.WriteLine($"*****{exMessage}");
+                Console.WriteLine($"*****{exMessage}");
             }
         }
         private string getPaymentLink(List<Order> orders)
