@@ -174,7 +174,7 @@ namespace AirandWebAPI.Services.Concrete
             string paymentLink = getPaymentLink(orders);
 
             // IWebHostEnvironment env
-            LocalResource localResource = RoleEnvironment.GetLocalResource("DownloadedTemplates");
+            LocalResource localResource = RoleEnvironment.GetLocalResource("Resources");
             string[] paths = { localResource.RootPath, "EmailTemplate" };
             String pathToEmailTemplate = Path.Combine(paths);
 
