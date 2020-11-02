@@ -50,7 +50,7 @@ namespace AirandWebAPI.Controllers
                     DispatchResponse response = await _orderService.Order(model);
                     if (response != null)
                         return Ok(new GenericResponse<DispatchResponse>(true, ResponseMessage.SUCCESSFUL, response));
-                    return Ok(new GenericResponse<DispatchResponse>(false, ResponseMessage.SUCCESSFUL, response));
+                    return Ok(new GenericResponse<DispatchResponse>(false, ResponseMessage.FAILED, response));
                 }
                 else
                 {
