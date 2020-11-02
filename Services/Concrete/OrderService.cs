@@ -177,12 +177,12 @@ namespace AirandWebAPI.Services.Concrete
                 string paymentLink = getPaymentLink(orders);
 
                 // IWebHostEnvironment env
-                LocalResource localResource = RoleEnvironment.GetLocalResource("Resources");
-                string[] paths = { localResource.RootPath, "EmailTemplate" };
-                String pathToEmailTemplate = Path.Combine(paths);
+                // LocalResource localResource = RoleEnvironment.GetLocalResource("Resources");
+                // string[] paths = { localResource.RootPath, "EmailTemplate" };
+                // String pathToEmailTemplate = Path.Combine(paths);
 
-                // var folderName = Path.Combine("Resources", "EmailTemplate");
-                // var pathToEmailTemplate = Path.Combine(Directory.GetCurrentDirectory(), folderName);
+                var folderName = Path.Combine("Resources", "EmailTemplate");
+                var pathToEmailTemplate = Path.Combine(Directory.GetCurrentDirectory(), folderName);
 
                 decimal amount = 0;
                 foreach (var item in orders)
