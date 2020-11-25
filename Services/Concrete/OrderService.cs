@@ -59,7 +59,7 @@ namespace AirandWebAPI.Services.Concrete
                     _unitOfWork.DispatchInfo.Add(deliverDetails);
                     order.DeliveryAddressId = await _unitOfWork.Complete();
 
-                    order.Cost = PriceCalculator.Process(model.PickUp.AreaCode, item.AreaCode); ///refactor
+                    order.Cost = PriceCalculator.Process(model.PickUp.RegionCode, item.RegionCode); ///refactor
                     totalAmount += order.Cost;
                     order.Status = OrderStatus.Pending;
                     order.DateCreated = DateTime.UtcNow + TimeSpan.FromHours(1);
@@ -92,8 +92,8 @@ namespace AirandWebAPI.Services.Concrete
                     var pickupDetails = _unitOfWork.DispatchInfo.Get(item.PickUpAddressId);
                     var deliveryDetails = _unitOfWork.DispatchInfo.Get(item.DeliveryAddressId);
 
-                    var pickUpRegion = _unitOfWork.Regions.Find(x => x.AreaCode.Equals(pickupDetails.AreaCode)).FirstOrDefault();
-                    var deliveryRegion = _unitOfWork.Regions.Find(x => x.AreaCode.Equals(deliveryDetails.AreaCode)).FirstOrDefault();
+                    var pickUpRegion = _unitOfWork.Regions.Find(x => x.Code.Equals(pickupDetails.RegionCode)).FirstOrDefault();
+                    var deliveryRegion = _unitOfWork.Regions.Find(x => x.Code.Equals(deliveryDetails.RegionCode)).FirstOrDefault();
 
                     var pickUpCoord = new Coordinates(pickUpRegion.Latitude, pickUpRegion.Longitude);
                     var deliveryCoord = new Coordinates(deliveryRegion.Latitude, deliveryRegion.Longitude);
@@ -111,7 +111,7 @@ namespace AirandWebAPI.Services.Concrete
                     amount += order.Cost;
 
                     int id = await _unitOfWork.Complete();
-                    orderIds += $"{id},";
+                    orderIds += $"{order.Id},";
                 }
 
                 //create invoice 
@@ -272,8 +272,10 @@ namespace AirandWebAPI.Services.Concrete
             foreach (var item in rows)
             {
                 var element = item.elements[0];
-                driverDistances.Add(new DriverDistance(driverCoords[i].driverId, new Distance(element.distance.text, element.distance.value), new Duration(element.duration.text, element.duration.value)));
-                distances.Add(new Distance(element.distance.text, element.distance.value));
+                if(element.distance != null && element.duration != null){
+                    driverDistances.Add(new DriverDistance(driverCoords[i].driverId, new Distance(element.distance.text, element.distance.value), new Duration(element.duration.text, element.duration.value)));
+                    distances.Add(new Distance(element.distance.text, element.distance.value));
+                }
                 i++;
             }
             var topDriverDistances = driverDistances.OrderByDescending(x => x.distance.value).Take(size).ToList();
