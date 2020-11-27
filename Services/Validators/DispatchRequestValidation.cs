@@ -29,7 +29,7 @@ namespace TheHangout.Services
                 }
                 foreach (var item in model.Delivery)
                 {
-                    if (string.IsNullOrWhiteSpace(item.Address) || string.IsNullOrWhiteSpace(item.Email) || string.IsNullOrWhiteSpace(item.Name)
+                    if (string.IsNullOrWhiteSpace(item.Address) || string.IsNullOrWhiteSpace(item.Name)
                    || string.IsNullOrWhiteSpace(item.Phone) || string.IsNullOrWhiteSpace(item.RegionCode) || string.IsNullOrWhiteSpace(item.AreaCode))
                     {
                         validationInfo.addInvalidationNarration("Missing fields in delivery");

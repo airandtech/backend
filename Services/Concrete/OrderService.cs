@@ -131,7 +131,7 @@ namespace AirandWebAPI.Services.Concrete
 
         public async Task<bool> ReceivePayment(FluttterwaveResponse response)
         {
-            var invoice = _unitOfWork.Invoices.Find(x => x.CustomerEmail.Equals(response.data.customer.email)).FirstOrDefault();
+            var invoice = _unitOfWork.Invoices.Find(x => x.CustomerEmail.Equals(response.data.customer.email) && !x.Status.Equals(OrderStatus.Completed)).FirstOrDefault();
             if (invoice != null)
             {
                 invoice.TransactionId = response.data.id;
