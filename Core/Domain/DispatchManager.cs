@@ -9,5 +9,7 @@ namespace AirandWebAPI.Core.Domain
         public string Name { get; set; }
         public string Phone { get; set; }
         public string Email { get; set; }
+        public int CompanyId { get; set; }
+        public virtual Company Company { get; set; }
     }
 }

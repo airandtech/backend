@@ -21,15 +21,18 @@ namespace AirandWebAPI.Controllers
         private ICompanyService _companyService;
         private IMapper _mapper;
         private IValidation<CreateCompanyVM> _createCompanyValidation;
+        private IValidation<AddDispatchManagerVM> _addDispatchManagerValidation;
         public CompanyController(
             ICompanyService companyService,
             IMapper mapper,
-            IValidation<CreateCompanyVM> createCompanyValidation
+            IValidation<CreateCompanyVM> createCompanyValidation,
+            IValidation<AddDispatchManagerVM> addDispatchManagerValidation
         )
         {
             _companyService = companyService;
             _mapper = mapper;
             _createCompanyValidation = createCompanyValidation;
+            _addDispatchManagerValidation = addDispatchManagerValidation;
         }
 
         [HttpPost]
@@ -48,7 +51,36 @@ namespace AirandWebAPI.Controllers
                     if (company != null)
                         return Ok(new GenericResponse<Company>(true, ResponseMessage.SUCCESSFUL, company));
                     
-                    return Ok(new GenericResponse<Company>(false, ResponseMessage.FAILED, null));
+                    return BadRequest(new GenericResponse<Company>(false, ResponseMessage.FAILED, null));
+                }
+                else
+                {
+                    ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.FAILED, validationInfo.getConcatInvalidationNarrations());
+                    return BadRequest(errorResponse);
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+                return StatusCode(500, exceptionHandler);
+            }
+        }
+
+        [HttpPost("managers/")]
+        public async Task<IActionResult> AddDispatchManagers([FromBody] AddDispatchManagerVM model)
+        {
+            try
+            {
+                var user = (User)HttpContext.Items["User"];
+                int userId = user.Id;
+                ValidationInfo validationInfo = _addDispatchManagerValidation.Validate(model);
+                if (validationInfo.isValid())
+                {
+                    bool isSuccessful = await _companyService.AddDispatchManagers(model, userId);
+                    if (isSuccessful)
+                        return Ok(new GenericResponse<string>(true, "Dispatch Manager(s) added successfully !!!", ResponseMessage.SUCCESSFUL));
+                    
+                    return BadRequest(new GenericResponse<string>(false, "Error occurred in processing", ResponseMessage.FAILED));
                 }
                 else
                 {

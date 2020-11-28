@@ -13,5 +13,6 @@ namespace AirandWebAPI.Core.Domain
         public string AccountNumber { get; set; }
         public string AccountName { get; set; }
         public int UserId { get; set; }
+        public virtual ICollection<DispatchManager> DispatchManagers { get; set; }
     }
 }
