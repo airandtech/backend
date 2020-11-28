@@ -13,6 +13,7 @@ namespace AirandWebAPI.Core
         IRegionRepository Regions { get; }
         IInvoiceRepository Invoices { get; }
         IOtpRepository Otps { get; }
+        ICompanyRepository Companies { get; }
         Task<int> Complete();
     }
 }
