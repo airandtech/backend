@@ -68,6 +68,7 @@ namespace AirandWebAPI
             services.AddScoped<IValidation<ChangeStatusVM>, ChangeStatusValidation>();
             services.AddScoped<IValidation<CreateCompanyVM>, CreateCompanyValidation>();
             services.AddScoped<IValidation<AddDispatchManagerVM>, AddDispatchManagerValidation>();
+            services.AddScoped<IValidation<AddRidersVM>, AddRidersValidation>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

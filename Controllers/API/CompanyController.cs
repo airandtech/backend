@@ -22,17 +22,20 @@ namespace AirandWebAPI.Controllers
         private IMapper _mapper;
         private IValidation<CreateCompanyVM> _createCompanyValidation;
         private IValidation<AddDispatchManagerVM> _addDispatchManagerValidation;
+        private IValidation<AddRidersVM> _addRidersValidation;
         public CompanyController(
             ICompanyService companyService,
             IMapper mapper,
             IValidation<CreateCompanyVM> createCompanyValidation,
-            IValidation<AddDispatchManagerVM> addDispatchManagerValidation
+            IValidation<AddDispatchManagerVM> addDispatchManagerValidation,
+            IValidation<AddRidersVM> addRidersValidation
         )
         {
             _companyService = companyService;
             _mapper = mapper;
             _createCompanyValidation = createCompanyValidation;
             _addDispatchManagerValidation = addDispatchManagerValidation;
+            _addRidersValidation = addRidersValidation;
         }
 
         [HttpPost]
@@ -95,5 +98,33 @@ namespace AirandWebAPI.Controllers
             }
         }
 
+        [HttpPost("riders/")]
+        public async Task<IActionResult> AddRiders([FromBody] AddRidersVM model)
+        {
+            try
+            {
+                var user = (User)HttpContext.Items["User"];
+                int userId = user.Id;
+                ValidationInfo validationInfo = _addRidersValidation.Validate(model);
+                if (validationInfo.isValid())
+                {
+                    bool isSuccessful = await _companyService.AddRiders(model, userId);
+                    if (isSuccessful)
+                        return Ok(new GenericResponse<string>(true, "Rider(s) added successfully !!!", ResponseMessage.SUCCESSFUL));
+                    
+                    return BadRequest(new GenericResponse<string>(false, "Error occurred in processing", ResponseMessage.FAILED));
+                }
+                else
+                {
+                    ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.FAILED, validationInfo.getConcatInvalidationNarrations());
+                    return BadRequest(errorResponse);
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+                return StatusCode(500, exceptionHandler);
+            }
+        }
     }
 }
