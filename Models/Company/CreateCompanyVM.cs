@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
-
-namespace AirandWebAPI.Core.Domain
+namespace AirandWebAPI.Models.Company
 {
-    public class Company : BaseEntity
+    public class CreateCompanyVM
     {
         public string CompanyName { get; set; }
         public string CompanyAddress { get; set; }
@@ -12,6 +8,6 @@ namespace AirandWebAPI.Core.Domain
         public string BankName { get; set; }
         public string AccountNumber { get; set; }
         public string AccountName { get; set; }
-        public int UserId { get; set; }
+
     }
 }

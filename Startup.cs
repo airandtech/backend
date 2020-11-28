@@ -18,6 +18,7 @@ using AirandWebAPI.Models.Direction;
 using AirandWebAPI.Models.Dispatch;
 using Microsoft.Extensions.FileProviders;
 using System.IO;
+using AirandWebAPI.Models.Company;
 
 namespace AirandWebAPI
 {
@@ -50,6 +51,7 @@ namespace AirandWebAPI
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IRegionService, RegionService>();
             services.AddScoped<ILocationService, LocationService>();
+            services.AddScoped<ICompanyService, CompanyService>();
 
 
             services.AddScoped<INotification, NotificationService>();
@@ -64,6 +66,7 @@ namespace AirandWebAPI
             services.AddScoped<IValidation<RideOrderRequest>, DispatchRequestValidation>();
             services.AddScoped<IValidation<Coordinates>, CoordinatesDataValidation>();
             services.AddScoped<IValidation<ChangeStatusVM>, ChangeStatusValidation>();
+            services.AddScoped<IValidation<CreateCompanyVM>, CreateCompanyValidation>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

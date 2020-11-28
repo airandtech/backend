@@ -20,6 +20,7 @@ namespace AirandWebAPI.Persistence
             Invoices = new InvoiceRepository(_context);
             Otps = new OtpRepository(_context);
             Companies = new CompanyRespository(_context);
+            DispatchManagers = new DispatchManagerRepository(_context);
         }
 
         public IUserRepository Users { get; private set; }
@@ -30,6 +31,7 @@ namespace AirandWebAPI.Persistence
         public IInvoiceRepository Invoices { get; private set; }
         public IOtpRepository Otps { get; private set; }
         public ICompanyRepository Companies { get; private set; }
+        public IDispatchManagerRepository DispatchManagers { get; private set; }
 
         public async Task<int> Complete()
         {

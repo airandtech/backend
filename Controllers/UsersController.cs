@@ -62,7 +62,7 @@ namespace WebApi.Controllers
             }
             catch (Exception ex)
             {
-                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
                 return StatusCode(500, exceptionHandler);
 
             }
@@ -92,7 +92,7 @@ namespace WebApi.Controllers
             }
             catch (Exception ex)
             {
-                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
                 return StatusCode(500, exceptionHandler);
 
             }
@@ -115,7 +115,7 @@ namespace WebApi.Controllers
             }
             catch (Exception ex)
             {
-                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
                 return StatusCode(500, exceptionHandler);
 
             }
@@ -140,7 +140,7 @@ namespace WebApi.Controllers
             }
             catch (Exception ex)
             {
-                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
                 return StatusCode(500, exceptionHandler);
 
             }
