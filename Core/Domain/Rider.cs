@@ -10,7 +10,7 @@ namespace AirandWebAPI.Core.Domain
         public string Latitude { get; set; }
         public string Longitude { get; set; }
         public string Address { get; set; }
-        public string Desccription { get; set; }
+        public string Description { get; set; }
         public string DeliveriesCompleted { get; set; }
         public string Status {get;set;}
 

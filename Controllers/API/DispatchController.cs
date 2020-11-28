@@ -60,7 +60,7 @@ namespace AirandWebAPI.Controllers
             }
             catch (Exception ex)
             {
-                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
                 return StatusCode(500, exceptionHandler);
 
             }
@@ -88,7 +88,7 @@ namespace AirandWebAPI.Controllers
             }
             catch (Exception ex)
             {
-                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
                 return StatusCode(500, exceptionHandler);
 
             }
@@ -114,7 +114,7 @@ namespace AirandWebAPI.Controllers
             }
             catch (Exception ex)
             {
-                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
                 return StatusCode(500, exceptionHandler);
             }
         }
@@ -137,7 +137,7 @@ namespace AirandWebAPI.Controllers
             }
             catch (Exception ex)
             {
-                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
                 return StatusCode(500, exceptionHandler);
 
             }
@@ -161,7 +161,7 @@ namespace AirandWebAPI.Controllers
             }
             catch (Exception ex)
             {
-                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
                 return StatusCode(500, exceptionHandler);
 
             }
@@ -181,12 +181,6 @@ namespace AirandWebAPI.Controllers
                     if (isSuccessful)
                     {
                          return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, ResponseMessage.SUCCESSFUL));
-                        // RiderOrders riderOrders = _orderService.GetOrders(userId);
-                        // if (riderOrders != null && (riderOrders.completed.Count > 0 || riderOrders.pending.Count > 0 || riderOrders.inProgress.Count > 0))
-                        // {
-                        //     return Ok(new GenericResponse<RiderOrders>(true, ResponseMessage.SUCCESSFUL, riderOrders));
-                        // }
-                        // return Ok(new GenericResponse<RiderOrders>(false, ResponseMessage.NO_RESULTS, null));
                     }
 
                     return Ok(new GenericResponse<string>(false, ResponseMessage.FAILED, ResponseMessage.FAILED));
@@ -200,7 +194,7 @@ namespace AirandWebAPI.Controllers
             }
             catch (Exception ex)
             {
-                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURED);
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
                 return StatusCode(500, exceptionHandler);
 
             }

@@ -1,5 +1,6 @@
 using AirandWebAPI.Core.Domain;
 using AirandWebAPI.Models.Auth;
+using AirandWebAPI.Models.Company;
 using AutoMapper;
 
 namespace AirandWebAPI.Helpers
@@ -9,6 +10,7 @@ namespace AirandWebAPI.Helpers
         public AutoMapperProfile()
         {
             CreateMap<RegisterModel, User>();
+            CreateMap<CreateCompanyVM, Company>();
         }
     }
 }
