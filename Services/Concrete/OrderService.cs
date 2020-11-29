@@ -54,10 +54,12 @@ namespace AirandWebAPI.Services.Concrete
                     order = new Order();
                     var deliverDetails = new DispatchRequestInfo(item);
                     _unitOfWork.DispatchInfo.Add(pickupDetails);
-                    order.PickUpAddressId = await _unitOfWork.Complete();
+                    await _unitOfWork.Complete();
+                    order.PickUpAddressId = pickupDetails.Id;
 
                     _unitOfWork.DispatchInfo.Add(deliverDetails);
-                    order.DeliveryAddressId = await _unitOfWork.Complete();
+                    await _unitOfWork.Complete();
+                    order.DeliveryAddressId = deliverDetails.Id;
 
                     order.Cost = PriceCalculator.Process(model.PickUp.RegionCode, item.RegionCode); ///refactor
                     totalAmount += order.Cost;
