@@ -152,7 +152,7 @@ namespace AirandWebAPI.Services.Concrete
             // var rider = _unitOfWork.Riders.Find(x => x.UserId.Equals(userId)).FirstOrDefault();
             // if(rider != null){
             var dispatchDetails = _unitOfWork.DispatchInfo.GetAll();
-            var orders = _unitOfWork.Orders.Find(x => x.RiderId == userId.ToString()).ToList();
+            var orders = _unitOfWork.Orders.Find(x => x.RiderId == userId.ToString()).OrderByDescending(x => x.DateCreated).ToList();
             var orderWithDetails = getOrderWithDetails(orders, dispatchDetails);
             riderOrders.completed = orderWithDetails.Where(x => x.Status.Equals(OrderStatus.Completed)).ToList();
             riderOrders.inProgress = orderWithDetails.Where(x => x.Status.Equals(OrderStatus.InProgress)).ToList();
