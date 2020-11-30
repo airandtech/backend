@@ -108,11 +108,11 @@ namespace AirandWebAPI.Services.Concrete
                     //get distance and duration and save
                     order.Distance = distanceAndDuration.distance.text;
                     order.Duration = distanceAndDuration.duration.text;
-                    order.Status = OrderStatus.Pending;
+                    order.Status = OrderStatus.InProgress;
 
                     amount += order.Cost;
 
-                    int id = await _unitOfWork.Complete();
+                    await _unitOfWork.Complete();
                     orderIds += $"{order.Id},";
                 }
 
