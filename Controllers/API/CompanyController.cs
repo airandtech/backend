@@ -54,7 +54,7 @@ namespace AirandWebAPI.Controllers
                     company = await _companyService.Create(company, userId);
                     if (company != null)
                         return Ok(new GenericResponse<Company>(true, ResponseMessage.SUCCESSFUL, company));
-                    
+
                     return BadRequest(new GenericResponse<Company>(false, ResponseMessage.FAILED, null));
                 }
                 else
@@ -83,7 +83,7 @@ namespace AirandWebAPI.Controllers
                     bool isSuccessful = await _companyService.AddDispatchManagers(model, userId);
                     if (isSuccessful)
                         return Ok(new GenericResponse<string>(true, "Dispatch Manager(s) added successfully !!!", ResponseMessage.SUCCESSFUL));
-                    
+
                     return BadRequest(new GenericResponse<string>(false, "Error occurred in processing", ResponseMessage.FAILED));
                 }
                 else
@@ -112,7 +112,7 @@ namespace AirandWebAPI.Controllers
                     bool isSuccessful = await _companyService.AddRiders(model, userId);
                     if (isSuccessful)
                         return Ok(new GenericResponse<string>(true, "Rider(s) added successfully !!!", ResponseMessage.SUCCESSFUL));
-                    
+
                     return BadRequest(new GenericResponse<string>(false, "Error occurred in processing", ResponseMessage.FAILED));
                 }
                 else
@@ -129,7 +129,8 @@ namespace AirandWebAPI.Controllers
         }
 
         [HttpPost("createWithDetails/")]
-        public async Task<IActionResult> CreateCompanyWithDetails([FromBody] CompanyWithDetailsVM model){
+        public async Task<IActionResult> CreateCompanyWithDetails([FromBody] CompanyWithDetailsVM model)
+        {
             try
             {
                 AddRidersVM riderModel = new AddRidersVM();
@@ -153,12 +154,12 @@ namespace AirandWebAPI.Controllers
                     CompanyWithDetailsVM companyWithDetailsVM = await _companyService.CreateCompanyWithDetails(model, userId);
                     if (companyWithDetailsVM != null)
                         return Ok(new GenericResponse<CompanyWithDetailsVM>(true, "Rider(s) added successfully !!!", companyWithDetailsVM));
-                    
+
                     return BadRequest(new GenericResponse<string>(false, "Error occurred in processing", ResponseMessage.FAILED));
                 }
                 else
                 {
-                    ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.FAILED, 
+                    ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.FAILED,
                     $" {riderValidationInfo.getConcatInvalidationNarrations()} - {companyValidationInfo.getConcatInvalidationNarrations()} - {dispatchValidationInfo.getConcatInvalidationNarrations()}"
                     );
                     return BadRequest(errorResponse);
@@ -170,6 +171,29 @@ namespace AirandWebAPI.Controllers
                 return StatusCode(500, exceptionHandler);
             }
         }
-    
+
+        [HttpGet("user/")]
+        public async Task<IActionResult> GetCompanyDetails()
+        {
+            try
+            {
+                var user = (User)HttpContext.Items["User"];
+                int userId = user.Id;
+
+
+                UserCompanyRider userCompanyRider = _companyService.GetCompanyDetails(userId);
+                if (userCompanyRider != null)
+                    return Ok(new GenericResponse<UserCompanyRider>(true, ResponseMessage.SUCCESSFUL, userCompanyRider));
+
+                return BadRequest(new GenericResponse<string>(false, "Error occurred in processing", ResponseMessage.FAILED));
+
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+                return StatusCode(500, exceptionHandler);
+            }
+        }
+
     }
 }
