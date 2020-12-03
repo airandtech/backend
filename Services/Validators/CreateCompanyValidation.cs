@@ -7,12 +7,17 @@ using AirandWebAPI;
 using AirandWebAPI.Models.Direction;
 using AirandWebAPI.Models.Dispatch;
 using AirandWebAPI.Models.Company;
+using AirandWebAPI.Core;
 
 namespace TheHangout.Services
 {
 
     public class CreateCompanyValidation : IValidation<CreateCompanyVM>
     {
+        private IUnitOfWork _unitOfWork;
+        public CreateCompanyValidation(IUnitOfWork unitOfWork){
+            _unitOfWork = unitOfWork;
+        }
 
         public ValidationInfo Validate(CreateCompanyVM model)
         {
@@ -30,6 +35,8 @@ namespace TheHangout.Services
                 validationInfo.addInvalidationNarration("Company Name required");
             if (string.IsNullOrWhiteSpace(model.OfficeArea))
                 validationInfo.addInvalidationNarration("Office Area required");
+            if (_unitOfWork.Companies.Find(x => x.UserId.Equals(model.UserId)) != null)
+                validationInfo.addInvalidationNarration("Company already exists for user");
 
             return validationInfo;
         }

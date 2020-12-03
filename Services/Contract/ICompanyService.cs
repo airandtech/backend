@@ -13,6 +13,7 @@ namespace AirandWebAPI.Services.Contract
         Task<Company> Create(Company company, int UserId);
         Task<bool> AddDispatchManagers(AddDispatchManagerVM model, int UserId);
         Task<bool> AddRiders(AddRidersVM model, int UserId);
+        Task<CompanyWithDetailsVM> CreateCompanyWithDetails(CompanyWithDetailsVM company, int UserId);
     }
 
 }

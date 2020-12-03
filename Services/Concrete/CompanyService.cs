@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AirandWebAPI.Models.Company;
 using System.Transactions;
 using AirandWebAPI.Models.Auth;
+using AutoMapper;
 
 namespace AirandWebAPI.Services.Concrete
 {
@@ -17,18 +18,26 @@ namespace AirandWebAPI.Services.Concrete
         private IUnitOfWork _unitOfWork;
         private readonly AppSettings _appSettings;
         private IUserService _userService;
+        private IMapper _mapper;
 
         public CompanyService(IUnitOfWork unitOfWork, 
         IOptions<AppSettings> appSettings,
-        IUserService userService)
+        IUserService userService,
+        IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _appSettings = appSettings.Value;
             _userService = userService;
+            _mapper = mapper;
         }
 
         public async Task<Company> Create(Company company, int UserId)
         {
+            var prevCompany = _unitOfWork.Companies.Find( x => x.UserId.Equals(UserId));
+            if(prevCompany != null){
+                return null;
+            }
+            
             company.UserId = UserId;
             company.DateCreated = DateTime.Now;
             _unitOfWork.Companies.Add(company);
@@ -93,6 +102,24 @@ namespace AirandWebAPI.Services.Concrete
             }
 
             return response;
+        }
+    
+        public async Task<CompanyWithDetailsVM> CreateCompanyWithDetails(CompanyWithDetailsVM model, int UserId){
+            CompanyWithDetailsVM companyWithDetails = null;
+
+            var company = _mapper.Map<Company>(model.company);
+            company = await this.Create(company, UserId);
+            if(company != null){
+                companyWithDetails = model;
+                AddRidersVM addRidersVM = new AddRidersVM();
+                addRidersVM.ridersDetails = model.ridersDetails;
+                var isRiderAdded = await this.AddRiders(addRidersVM, UserId);
+
+                AddDispatchManagerVM addDispatchManager = new AddDispatchManagerVM();
+                addDispatchManager.managerDetails = model.managerDetails;
+                var isManagerAdded = await this.AddDispatchManagers(addDispatchManager, UserId);
+            }
+            return companyWithDetails;
         }
     }
 }

@@ -38,7 +38,7 @@ namespace AirandWebAPI.Controllers
             _addRidersValidation = addRidersValidation;
         }
 
-        [HttpPost]
+        [HttpPost()]
         public async Task<IActionResult> Create([FromBody] CreateCompanyVM model)
         {
             try
@@ -47,6 +47,7 @@ namespace AirandWebAPI.Controllers
 
                 var user = (User)HttpContext.Items["User"];
                 int userId = user.Id;
+                model.UserId = userId;
                 ValidationInfo validationInfo = _createCompanyValidation.Validate(model);
                 if (validationInfo.isValid())
                 {
@@ -126,5 +127,49 @@ namespace AirandWebAPI.Controllers
                 return StatusCode(500, exceptionHandler);
             }
         }
+
+        [HttpPost("createWithDetails/")]
+        public async Task<IActionResult> CreateCompanyWithDetails([FromBody] CompanyWithDetailsVM model){
+            try
+            {
+                AddRidersVM riderModel = new AddRidersVM();
+                riderModel.ridersDetails = model.ridersDetails;
+
+                AddDispatchManagerVM dispatchModel = new AddDispatchManagerVM();
+                dispatchModel.managerDetails = model.managerDetails;
+
+                CreateCompanyVM companyModel = model.company;
+
+                var user = (User)HttpContext.Items["User"];
+                int userId = user.Id;
+                model.company.UserId = userId;
+
+                ValidationInfo riderValidationInfo = _addRidersValidation.Validate(riderModel);
+                ValidationInfo companyValidationInfo = _createCompanyValidation.Validate(companyModel);
+                ValidationInfo dispatchValidationInfo = _addDispatchManagerValidation.Validate(dispatchModel);
+
+                if (riderValidationInfo.isValid() && companyValidationInfo.isValid() && dispatchValidationInfo.isValid())
+                {
+                    CompanyWithDetailsVM companyWithDetailsVM = await _companyService.CreateCompanyWithDetails(model, userId);
+                    if (companyWithDetailsVM != null)
+                        return Ok(new GenericResponse<CompanyWithDetailsVM>(true, "Rider(s) added successfully !!!", companyWithDetailsVM));
+                    
+                    return BadRequest(new GenericResponse<string>(false, "Error occurred in processing", ResponseMessage.FAILED));
+                }
+                else
+                {
+                    ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.FAILED, 
+                    $" {riderValidationInfo.getConcatInvalidationNarrations()} - {companyValidationInfo.getConcatInvalidationNarrations()} - {dispatchValidationInfo.getConcatInvalidationNarrations()}"
+                    );
+                    return BadRequest(errorResponse);
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+                return StatusCode(500, exceptionHandler);
+            }
+        }
+    
     }
 }
