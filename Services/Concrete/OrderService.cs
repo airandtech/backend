@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using AirandWebAPI.Models.Dispatch;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using PazarWebApi.Core.Domain;
+using AirandWebAPI.Models;
 
 namespace AirandWebAPI.Services.Concrete
 {
@@ -21,19 +22,23 @@ namespace AirandWebAPI.Services.Concrete
     {
         private int take = 10;
         private int skip = 0;
+        private readonly string notificationBaseUrl = "https://airandapi.azurewebsites.net";
         private IUnitOfWork _unitOfWork;
         private INotification _notification;
         private IMailer _mailer;
         private IEnumerable<Rider> riders;
+        private ISmsService _smsService;
 
         public OrderService(
             IUnitOfWork unitOfWork,
             INotification notification,
-            IMailer mailer)
+            IMailer mailer,
+            ISmsService smsService)
         {
             _unitOfWork = unitOfWork;
             _notification = notification;
             _mailer = mailer;
+            _smsService = smsService;
         }
         public Order GetById(int id)
         {
@@ -54,11 +59,11 @@ namespace AirandWebAPI.Services.Concrete
                     order = new Order();
                     var deliverDetails = new DispatchRequestInfo(item);
                     _unitOfWork.DispatchInfo.Add(pickupDetails);
-                    await _unitOfWork.Complete();
+                    var dispatchDetailsTask = _unitOfWork.Complete();
                     order.PickUpAddressId = pickupDetails.Id;
 
                     _unitOfWork.DispatchInfo.Add(deliverDetails);
-                    await _unitOfWork.Complete();
+                    var dispatchInfoTask = _unitOfWork.Complete();
                     order.DeliveryAddressId = deliverDetails.Id;
 
                     order.Cost = PriceCalculator.Process(model.PickUp.RegionCode, item.RegionCode); ///refactor
@@ -67,11 +72,15 @@ namespace AirandWebAPI.Services.Concrete
                     order.DateCreated = DateTime.UtcNow + TimeSpan.FromHours(1);
                     order.RequestorIdentifier = pickupDetails.Email;
                     _unitOfWork.Orders.Add(order);
-                    await _unitOfWork.Complete();
+                    var ordersTask = _unitOfWork.Complete();
                     orders.Add(order);
+
+                    await Task.WhenAll(dispatchDetailsTask, dispatchInfoTask, ordersTask);
                 }
-                await processDispatch(model);
-                //.ContinueWith(t => Console.WriteLine(t.Exception), TaskContinuationOptions.OnlyOnFaulted);
+                var managerTask = sendToManager(model);
+                var dispatchTask = processDispatch(model);
+
+                await Task.WhenAll(managerTask, dispatchTask);
                 return new DispatchResponse(model.PickUp.Name, totalAmount, this.getPaymentLink(orders));
             }
             catch (Exception ex)
@@ -334,6 +343,40 @@ namespace AirandWebAPI.Services.Concrete
             }
 
             return ordersList;
+        }
+    
+        private async Task sendToManager(RideOrderRequest model)
+        {
+
+            string orderLink = $"{notificationBaseUrl}/order/{model.PickUp.Email}";
+             //get all managers
+            var managers = _unitOfWork.DispatchManagers.GetAll();
+            var folderName = Path.Combine("Resources", "EmailTemplate");
+            var pathToEmailTemplate = Path.Combine(Directory.GetCurrentDirectory(), folderName);
+
+            orderLink = ShrinkURL.Process(orderLink); 
+
+
+            foreach (var item in managers)
+            {
+                //send email notification
+                using (StreamReader sr = new StreamReader(pathToEmailTemplate + "/OrderNotification.html"))
+                {
+                    var line = await sr.ReadToEndAsync();
+
+                    var formattedEmail = string.Format(line, item.Name, orderLink);
+
+                    await _mailer.SendMailAsync(item.Email, item.Name, "Airand: Dispatch Request", formattedEmail);
+                }
+
+                //send sms notification
+                string message = $"Airand: New Dispatch Request click {orderLink} to view details. ";
+                SmsBody smsBody = new SmsBody("Airand", item.Phone, message);
+
+                await _smsService.SendAsync(smsBody);
+            }
+           
+
         }
     }
 }
