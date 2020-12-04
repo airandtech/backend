@@ -47,8 +47,7 @@ namespace AirandWebAPI.Services.Concrete
 
         public async Task<DispatchResponse> Order(RideOrderRequest model)
         {
-            try
-            {
+            
                 Order order;
                 decimal totalAmount = 0;
                 List<Order> orders = new List<Order>();
@@ -59,11 +58,11 @@ namespace AirandWebAPI.Services.Concrete
                     order = new Order();
                     var deliverDetails = new DispatchRequestInfo(item);
                     _unitOfWork.DispatchInfo.Add(pickupDetails);
-                    var dispatchDetailsTask = _unitOfWork.Complete();
+                    await _unitOfWork.Complete();
                     order.PickUpAddressId = pickupDetails.Id;
 
                     _unitOfWork.DispatchInfo.Add(deliverDetails);
-                    var dispatchInfoTask = _unitOfWork.Complete();
+                    await _unitOfWork.Complete();
                     order.DeliveryAddressId = deliverDetails.Id;
 
                     order.Cost = PriceCalculator.Process(model.PickUp.RegionCode, item.RegionCode); ///refactor
@@ -72,22 +71,16 @@ namespace AirandWebAPI.Services.Concrete
                     order.DateCreated = DateTime.UtcNow + TimeSpan.FromHours(1);
                     order.RequestorIdentifier = pickupDetails.Email;
                     _unitOfWork.Orders.Add(order);
-                    var ordersTask = _unitOfWork.Complete();
+                    await _unitOfWork.Complete();
                     orders.Add(order);
 
-                    await Task.WhenAll(dispatchDetailsTask, dispatchInfoTask, ordersTask);
+                    //await Task.WhenAll(dispatchDetailsTask, dispatchInfoTask, ordersTask);
                 }
                 var managerTask = sendToManager(model);
                 var dispatchTask = processDispatch(model);
 
                 await Task.WhenAll(managerTask, dispatchTask);
                 return new DispatchResponse(model.PickUp.Name, totalAmount, this.getPaymentLink(orders));
-            }
-            catch (Exception ex)
-            {
-                string exMessage = ex.Message;
-                return null;
-            }
         }
 
         public async Task<bool> Accept(string requestorEmail, int riderId)
@@ -373,7 +366,7 @@ namespace AirandWebAPI.Services.Concrete
                 string message = $"Airand: New Dispatch Request click {orderLink} to view details. ";
                 SmsBody smsBody = new SmsBody("Airand", item.Phone, message);
 
-                await _smsService.SendAsync(smsBody);
+                //await _smsService.SendAsync(smsBody);
             }
            
 
