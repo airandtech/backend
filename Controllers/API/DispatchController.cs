@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using AirandWebAPI.Core.Domain;
 using AirandWebAPI.Models;
 using AirandWebAPI.Models.Response;
+using Microsoft.Extensions.Logging;
 
 namespace AirandWebAPI.Controllers
 {
@@ -24,12 +26,14 @@ namespace AirandWebAPI.Controllers
         private IValidation<RideOrderRequest> _dispatchRequestValidation;
         private IValidation<ChangeStatusVM> _changeStatusValidation;
         private ISmsService _smsService;
+        private readonly ILogger _logger;
         public DispatchController(
             IOrderService orderService,
             IMapper mapper,
             IValidation<RideOrderRequest> dispatchRequestValidation,
             ISmsService smsService,
-            IValidation<ChangeStatusVM> changeStatusValidation
+            IValidation<ChangeStatusVM> changeStatusValidation,
+            ILogger<DispatchController> logger
         )
         {
             _orderService = orderService;
@@ -37,6 +41,7 @@ namespace AirandWebAPI.Controllers
             _dispatchRequestValidation = dispatchRequestValidation;
             _smsService = smsService;
             _changeStatusValidation = changeStatusValidation;
+            _logger = logger;
         }
 
         [HttpPost("order")]
@@ -106,8 +111,12 @@ namespace AirandWebAPI.Controllers
         [HttpPost("webhook")]
         public async Task<IActionResult> FlutterWaveWebHook([FromBody] FluttterwaveResponse response)
         {
+            
             try
             {
+                var json = Newtonsoft.Json.JsonConvert.SerializeObject(response);
+                _logger.LogInformation(json);
+            
                 bool resp = await _orderService.ReceivePayment(response);
                 if (resp) return Ok();
                 return BadRequest();
