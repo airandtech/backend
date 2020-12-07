@@ -110,7 +110,7 @@ namespace AirandWebAPI.Services.Concrete
                     //get distance and duration and save
                     order.Distance = distanceAndDuration.distance.text;
                     order.Duration = distanceAndDuration.duration.text;
-                    order.Status = OrderStatus.InProgress;
+                    //order.Status = OrderStatus.InProgress;
 
                     amount += order.Cost;
 
