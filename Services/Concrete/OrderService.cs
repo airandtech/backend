@@ -236,11 +236,14 @@ namespace AirandWebAPI.Services.Concrete
             switch ((int)cost)
             {
                 case 1000:
-                    return "https://flutterwave.com/pay/airand1k";
+                    return "https://ravesandbox.flutterwave.com/pay/ifieygi2gotd";
+                    //return "https://flutterwave.com/pay/airand1k";
                 case 1500:
-                    return "https://flutterwave.com/pay/airand1k5";
+                    return "https://ravesandbox.flutterwave.com/pay/aljakozdf7j2";
+                    //return "https://flutterwave.com/pay/airand1k5";
                 case 2000:
-                    return "https://flutterwave.com/pay/airand2k";
+                    return "https://ravesandbox.flutterwave.com/pay/y9tqicwnkw84";
+                    //return "https://flutterwave.com/pay/airand2k";
                 case 2500:
                     return "https://flutterwave.com/pay/airand2k5";
                 case 3000:
