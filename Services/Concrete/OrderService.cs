@@ -67,7 +67,7 @@ namespace AirandWebAPI.Services.Concrete
 
                 order.Cost = PriceCalculator.Process(model.PickUp.RegionCode, item.RegionCode); ///refactor
                 totalAmount += order.Cost;
-                order.Status = OrderStatus.Pending;
+                order.Status = OrderStatus.Created;
                 order.DateCreated = DateTime.UtcNow + TimeSpan.FromHours(1);
                 order.RequestorIdentifier = pickupDetails.Email;
                 _unitOfWork.Orders.Add(order);
@@ -85,7 +85,10 @@ namespace AirandWebAPI.Services.Concrete
 
         public async Task<bool> Accept(string requestorEmail, int riderId)
         {
-            var orders = _unitOfWork.Orders.Find(x => x.RequestorIdentifier.Equals(requestorEmail) && x.Status.Equals(OrderStatus.Pending)).ToList();
+            var orders = _unitOfWork.Orders.Find(
+                x => x.RequestorIdentifier.Equals(requestorEmail) 
+                && x.Status.Equals(OrderStatus.Created)
+                ).ToList();
             decimal amount = 0;
             string orderIds = "";
 
@@ -110,7 +113,7 @@ namespace AirandWebAPI.Services.Concrete
                     //get distance and duration and save
                     order.Distance = distanceAndDuration.distance.text;
                     order.Duration = distanceAndDuration.duration.text;
-                    //order.Status = OrderStatus.InProgress;
+                    order.Status = OrderStatus.Pending;
 
                     amount += order.Cost;
 
