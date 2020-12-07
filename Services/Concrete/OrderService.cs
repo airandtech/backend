@@ -209,7 +209,7 @@ namespace AirandWebAPI.Services.Concrete
 
                 //send sms notification
                 string message = $"Airand: Your order has been accepted. See payment link {paymentLink}";
-                var user = _unitOfWork.Users.SingleOrDefault(x => x.Username.Equals(requestorEmail));//refactor this 
+                var user = _unitOfWork.DispatchInfo.Find(x => x.Email.Equals(requestorEmail)).LastOrDefault();//refactor this 
                 SmsBody smsBody = new SmsBody("Airand", user.Phone, message);
 
                 await _smsService.SendAsync(smsBody);
