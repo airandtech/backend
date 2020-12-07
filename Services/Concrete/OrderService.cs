@@ -140,7 +140,10 @@ namespace AirandWebAPI.Services.Concrete
         public async Task<bool> ReceivePayment(FluttterwaveResponse response)
         {
             var invoice = _unitOfWork.Invoices
-                .Find(x => x.CustomerEmail.Equals(response.data.customer.email) && !x.Status.Equals(OrderStatus.Completed))
+                .Find(x => x.CustomerEmail.Equals(response.data.customer.email) 
+                && !x.Status.Equals(OrderStatus.Completed)
+                && response.data.amount.Equals((int)x.Amount)
+                )
                 .OrderByDescending(x => x.LastModified)
                 .FirstOrDefault();
             if (invoice != null)

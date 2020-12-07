@@ -209,5 +209,38 @@ namespace AirandWebAPI.Controllers
             }
         }
 
+        // [HttpGet("orders/{id}")]
+        // public IActionResult GetOrders(int id)
+        // {
+        //     try
+        //     {
+        //         var user = (User)HttpContext.Items["User"];
+        //         int userId = user.Id;
+        //         ValidationInfo validationInfo = _changeStatusValidation.Validate(model);
+        //         if (validationInfo.isValid())
+        //         {
+        //             bool isSuccessful = _orderService.ChangeStatus(model);
+        //             if (isSuccessful)
+        //             {
+        //                  return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, ResponseMessage.SUCCESSFUL));
+        //             }
+
+        //             return Ok(new GenericResponse<string>(false, ResponseMessage.FAILED, ResponseMessage.FAILED));
+        //         }
+        //         else
+        //         {
+        //             ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.FAILED, validationInfo.getConcatInvalidationNarrations());
+        //             return BadRequest(errorResponse);
+        //         }
+
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+        //         return StatusCode(500, exceptionHandler);
+
+        //     }
+        // }
+
     }
 }
