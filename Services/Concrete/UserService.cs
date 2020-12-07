@@ -63,7 +63,12 @@ namespace AirandWebAPI.Services.Concrete
             var token = generateJwtToken(user);
             var existingUser = _unitOfWork.Users.SingleOrDefault(x => x.Username == user.Username);
 
-            if (existingUser != null) return new AuthenticateResponse(existingUser, token);
+            if (existingUser != null){
+                //var authRequest = new AuthenticateRequest(user.Username, password);
+                return Authenticate(new AuthenticateRequest(user.Username, password));
+                // token = generateJwtToken(existingUser);
+                // return new AuthenticateResponse(existingUser, token);
+            } 
 
             byte[] passwordHash, passwordSalt;
             CreatePasswordHash(password, out passwordHash, out passwordSalt);
