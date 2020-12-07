@@ -120,6 +120,7 @@ namespace AirandWebAPI.Services.Concrete
 
                 //create invoice 
                 Invoice invoice = new Invoice(amount, requestorEmail, OrderStatus.Pending);
+                invoice.DateCreated = DateTime.Now;
                 if (orders.Count == 1) invoice.OrderId = int.Parse(orderIds.Remove(orderIds.Length - 1, 1));
                 else invoice.OrderIds = orderIds;
 
@@ -137,6 +138,7 @@ namespace AirandWebAPI.Services.Concrete
         {
             var invoice = _unitOfWork.Invoices
                 .Find(x => x.CustomerEmail.Equals(response.data.customer.email) && !x.Status.Equals(OrderStatus.Completed))
+                .OrderByDescending(x => x.LastModified)
                 .FirstOrDefault();
             if (invoice != null)
             {
