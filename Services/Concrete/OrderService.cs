@@ -206,6 +206,13 @@ namespace AirandWebAPI.Services.Concrete
 
                     await _mailer.SendMailAsync(requestorEmail, requestorEmail, "Airand: Dispatch Request", formattedEmail);
                 }
+
+                //send sms notification
+                string message = $"Airand: Your order has been accepted. See payment link {paymentLink}";
+                var user = _unitOfWork.Users.SingleOrDefault(x => x.Username.Equals(requestorEmail));//refactor this 
+                SmsBody smsBody = new SmsBody("Airand", user.Phone, message);
+
+                await _smsService.SendAsync(smsBody);
             }
             catch (Exception ex)
             {
