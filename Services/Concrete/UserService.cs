@@ -60,7 +60,7 @@ namespace AirandWebAPI.Services.Concrete
 
         public async Task<AuthenticateResponse> Create(User user, string password)
         {
-            var token = generateJwtToken(user);
+           
             var existingUser = _unitOfWork.Users.SingleOrDefault(x => x.Username == user.Username);
 
             if (existingUser != null){
@@ -79,6 +79,8 @@ namespace AirandWebAPI.Services.Concrete
 
             _unitOfWork.Users.Add(user);
             await _unitOfWork.Complete();
+
+            var token = generateJwtToken(user);
 
             return new AuthenticateResponse(user, token);
         }
