@@ -47,40 +47,40 @@ namespace AirandWebAPI.Services.Concrete
 
         public async Task<DispatchResponse> Order(RideOrderRequest model)
         {
-            
-                Order order;
-                decimal totalAmount = 0;
-                List<Order> orders = new List<Order>();
-                DispatchRequestInfo pickupDetails;
-                foreach (var item in model.Delivery)
-                {
-                    pickupDetails = new DispatchRequestInfo(model.PickUp);
-                    order = new Order();
-                    var deliverDetails = new DispatchRequestInfo(item);
-                    _unitOfWork.DispatchInfo.Add(pickupDetails);
-                    await _unitOfWork.Complete();
-                    order.PickUpAddressId = pickupDetails.Id;
 
-                    _unitOfWork.DispatchInfo.Add(deliverDetails);
-                    await _unitOfWork.Complete();
-                    order.DeliveryAddressId = deliverDetails.Id;
+            Order order;
+            decimal totalAmount = 0;
+            List<Order> orders = new List<Order>();
+            DispatchRequestInfo pickupDetails;
+            foreach (var item in model.Delivery)
+            {
+                pickupDetails = new DispatchRequestInfo(model.PickUp);
+                order = new Order();
+                var deliverDetails = new DispatchRequestInfo(item);
+                _unitOfWork.DispatchInfo.Add(pickupDetails);
+                await _unitOfWork.Complete();
+                order.PickUpAddressId = pickupDetails.Id;
 
-                    order.Cost = PriceCalculator.Process(model.PickUp.RegionCode, item.RegionCode); ///refactor
-                    totalAmount += order.Cost;
-                    order.Status = OrderStatus.Pending;
-                    order.DateCreated = DateTime.UtcNow + TimeSpan.FromHours(1);
-                    order.RequestorIdentifier = pickupDetails.Email;
-                    _unitOfWork.Orders.Add(order);
-                    await _unitOfWork.Complete();
-                    orders.Add(order);
+                _unitOfWork.DispatchInfo.Add(deliverDetails);
+                await _unitOfWork.Complete();
+                order.DeliveryAddressId = deliverDetails.Id;
 
-                    //await Task.WhenAll(dispatchDetailsTask, dispatchInfoTask, ordersTask);
-                }
-                var managerTask = sendToManager(model);
-                var dispatchTask = processDispatch(model);
+                order.Cost = PriceCalculator.Process(model.PickUp.RegionCode, item.RegionCode); ///refactor
+                totalAmount += order.Cost;
+                order.Status = OrderStatus.Pending;
+                order.DateCreated = DateTime.UtcNow + TimeSpan.FromHours(1);
+                order.RequestorIdentifier = pickupDetails.Email;
+                _unitOfWork.Orders.Add(order);
+                await _unitOfWork.Complete();
+                orders.Add(order);
 
-                await Task.WhenAll(managerTask, dispatchTask);
-                return new DispatchResponse(model.PickUp.Name, totalAmount, this.getPaymentLink(orders));
+                //await Task.WhenAll(dispatchDetailsTask, dispatchInfoTask, ordersTask);
+            }
+            var managerTask = sendToManager(model);
+            var dispatchTask = processDispatch(model);
+
+            await Task.WhenAll(managerTask, dispatchTask);
+            return new DispatchResponse(model.PickUp.Name, totalAmount, this.getPaymentLink(orders));
         }
 
         public async Task<bool> Accept(string requestorEmail, int riderId)
@@ -212,12 +212,17 @@ namespace AirandWebAPI.Services.Concrete
         }
         private string getPaymentLink(List<Order> orders)
         {
+            decimal cost = 0;
             if (orders.Count() > 1)
             {
-                return "https://flutterwave.com/pay/abnkqrzycdkt";
+                orders.ForEach(x => cost += x.Cost);
             }
-            var order = orders.FirstOrDefault();
-            switch (order.Cost)
+            else
+            {
+                cost = orders.SingleOrDefault().Cost;
+            }
+
+            switch ((int)cost)
             {
                 case 1000:
                     return "https://flutterwave.com/pay/airand1k";
@@ -229,6 +234,34 @@ namespace AirandWebAPI.Services.Concrete
                     return "https://flutterwave.com/pay/airand2k5";
                 case 3000:
                     return "https://flutterwave.com/pay/airand3k";
+                case 3500:
+                    return "https://flutterwave.com/pay/wltb9wjo6ke5";
+                case 4000:
+                    return "https://flutterwave.com/pay/gjqc9tmtpsan";
+                case 4500:
+                    return "https://flutterwave.com/pay/moknanghqoxt";
+                case 5000:
+                    return "https://flutterwave.com/pay/6m0spzszgm9j";
+                case 5500:
+                    return "https://flutterwave.com/pay/xlfapgdx0qps";
+                case 6000:
+                    return "https://flutterwave.com/pay/adb15t1ikfd1";
+                case 6500:
+                    return "https://flutterwave.com/pay/fynayozn03td";
+                case 7000:
+                    return "https://flutterwave.com/pay/fuhmk5g8ykg7";
+                case 7500:
+                    return "https://flutterwave.com/pay/gheu1xv7bq9k";
+                case 8000:
+                    return "https://flutterwave.com/pay/pe8omfu6s6f4";
+                case 8500:
+                    return "https://flutterwave.com/pay/kptxg4nz3kmb";
+                case 9000:
+                    return "https://flutterwave.com/pay/dtobnvifhnq7";
+                case 9500:
+                    return "https://flutterwave.com/pay/oxusqegcqtf9";
+                case 10000:
+                    return "https://flutterwave.com/pay/9ylwy4fccrfw";
                 default:
                     return "https://flutterwave.com/pay/abnkqrzycdkt";
             }
@@ -276,7 +309,8 @@ namespace AirandWebAPI.Services.Concrete
             foreach (var item in rows)
             {
                 var element = item.elements[0];
-                if(element.distance != null && element.duration != null){
+                if (element.distance != null && element.duration != null)
+                {
                     driverDistances.Add(new DriverDistance(driverCoords[i].driverId, new Distance(element.distance.text, element.distance.value), new Duration(element.duration.text, element.duration.value)));
                     distances.Add(new Distance(element.distance.text, element.distance.value));
                 }
@@ -337,17 +371,17 @@ namespace AirandWebAPI.Services.Concrete
 
             return ordersList;
         }
-    
+
         private async Task sendToManager(RideOrderRequest model)
         {
 
             string orderLink = $"{notificationBaseUrl}/order/{model.PickUp.Email}";
-             //get all managers
+            //get all managers
             var managers = _unitOfWork.DispatchManagers.GetAll();
             var folderName = Path.Combine("Resources", "EmailTemplate");
             var pathToEmailTemplate = Path.Combine(Directory.GetCurrentDirectory(), folderName);
 
-            orderLink = ShrinkURL.Process(orderLink); 
+            orderLink = ShrinkURL.Process(orderLink);
 
 
             foreach (var item in managers)
@@ -368,7 +402,7 @@ namespace AirandWebAPI.Services.Concrete
 
                 //await _smsService.SendAsync(smsBody);
             }
-           
+
 
         }
     }
