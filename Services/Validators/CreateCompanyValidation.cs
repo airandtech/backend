@@ -15,7 +15,8 @@ namespace TheHangout.Services
     public class CreateCompanyValidation : IValidation<CreateCompanyVM>
     {
         private IUnitOfWork _unitOfWork;
-        public CreateCompanyValidation(IUnitOfWork unitOfWork){
+        public CreateCompanyValidation(IUnitOfWork unitOfWork)
+        {
             _unitOfWork = unitOfWork;
         }
 
@@ -35,7 +36,8 @@ namespace TheHangout.Services
                 validationInfo.addInvalidationNarration("Company Name required");
             if (string.IsNullOrWhiteSpace(model.OfficeArea))
                 validationInfo.addInvalidationNarration("Office Area required");
-            if (_unitOfWork.Companies.Find(x => x.UserId.Equals(model.UserId)) != null)
+
+            if (_unitOfWork.Companies.Find(x => x.UserId.Equals(model.UserId)).Count() > 0)
                 validationInfo.addInvalidationNarration("Company already exists for user");
 
             return validationInfo;

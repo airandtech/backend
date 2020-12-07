@@ -36,7 +36,7 @@ namespace AirandWebAPI.Services.Concrete
         public async Task<Company> Create(Company company, int UserId)
         {
             var prevCompany = _unitOfWork.Companies.Find(x => x.UserId.Equals(UserId));
-            if (prevCompany != null)
+            if (prevCompany.Count() > 0)
             {
                 return null;
             }
