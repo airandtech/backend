@@ -246,7 +246,10 @@ namespace AirandWebAPI.Services.Concrete
 
                 //send sms notification
                 string message = $"Airand: Your order has been accepted. See payment link {paymentLink}";
-                var user = _unitOfWork.DispatchInfo.Find(x => x.Email.Equals(requestorEmail)).LastOrDefault();//refactor this 
+                int pickupAddressId = orders.FirstOrDefault().PickUpAddressId;
+                var user = _unitOfWork.DispatchInfo.Get(pickupAddressId);//refactor this 
+
+                //check if sms is sent to the sender of the request
                 SmsBody smsBody = new SmsBody("Airand", user.Phone, message);
 
                 await _smsService.SendAsync(smsBody);
