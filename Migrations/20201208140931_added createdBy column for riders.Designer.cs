@@ -4,14 +4,16 @@ using AirandWebAPI.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AirandWebAPI.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20201208140931_added createdBy column for riders")]
+    partial class addedcreatedBycolumnforriders
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -307,9 +309,6 @@ namespace AirandWebAPI.Migrations
 
                     b.Property<string>("Bio")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
 
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");

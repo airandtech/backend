@@ -23,21 +23,22 @@ namespace AirandWebAPI.Services
 
         private static RideOrderRequest requestData;
         private static DriverDistance driverDistance;
+        private static string transactionId;
 
         public NotificationService(IOptions<AppSettings> appSettings)
         {
             _appSettings = appSettings.Value;
         }
 
-        public void setRequestData(RideOrderRequest model){
+        public void setRequestData(RideOrderRequest model, string transactionCode){
             requestData = new RideOrderRequest();
             requestData = model;
+            transactionId = transactionCode;
         }
         public void setDriverDistance(DriverDistance model){
             driverDistance = new DriverDistance();
             driverDistance = model;
         }
-
         public async Task<bool> SendAsync(string title, string message, string mobile_token)
         {
             HttpClient client = new HttpClient();
@@ -49,7 +50,7 @@ namespace AirandWebAPI.Services
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("key", "=" + apiKey);
 
             Notification notification = new Notification(title, message, "");
-            Data data = new Data(requestData, driverDistance);
+            Data data = new Data(requestData, driverDistance, transactionId);
             PushNotification pushObj = new PushNotification(notification, new List<string>(){mobile_token}, data);
            
 

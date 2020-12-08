@@ -4,14 +4,16 @@ using AirandWebAPI.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AirandWebAPI.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20201208122322_added transactionId to to orders and invoice tables")]
+    partial class addedtransactionIdtotoordersandinvoicetables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -263,9 +265,6 @@ namespace AirandWebAPI.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
@@ -307,9 +306,6 @@ namespace AirandWebAPI.Migrations
 
                     b.Property<string>("Bio")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
 
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");

@@ -13,6 +13,7 @@ namespace AirandWebAPI.Core.Domain
         public string Description { get; set; }
         public string DeliveriesCompleted { get; set; }
         public string Status {get;set;}
+        public int CreatedBy {get;set;}
 
         [ForeignKey("User")]
         public int UserId { get; set; }
