@@ -13,6 +13,7 @@ using AirandWebAPI.Core.Domain;
 using AirandWebAPI.Models;
 using AirandWebAPI.Models.Response;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace AirandWebAPI.Controllers
 {
@@ -71,16 +72,16 @@ namespace AirandWebAPI.Controllers
             }
         }
 
-        [HttpGet("accept/{email}")]
-        public async Task<IActionResult> Accept(string email)
+        [HttpGet("accept/{transactionId}/{requestorEmail}")]
+        public async Task<IActionResult> Accept(string transactionId, string requestorEmail)
         {
             try
             {
-                if (!string.IsNullOrWhiteSpace(email))
+                if (!string.IsNullOrWhiteSpace(transactionId))
                 {
                     var user = (User)HttpContext.Items["User"];
                     int userId = user.Id;
-                    bool response = await _orderService.Accept(email, userId);
+                    bool response = await _orderService.Accept(transactionId, requestorEmail, userId);
                     if (response)
                         return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, ResponseMessage.SUCCESSFUL));
                     return Ok(new GenericResponse<string>(false, "Order is no longer available", ResponseMessage.FAILED));
@@ -111,12 +112,12 @@ namespace AirandWebAPI.Controllers
         [HttpPost("webhook")]
         public async Task<IActionResult> FlutterWaveWebHook([FromBody] FluttterwaveResponse response)
         {
-            
+
             try
             {
                 var json = Newtonsoft.Json.JsonConvert.SerializeObject(response);
                 _logger.LogInformation(json);
-            
+
                 bool resp = await _orderService.ReceivePayment(response);
                 if (resp) return Ok();
                 return BadRequest();
@@ -189,7 +190,7 @@ namespace AirandWebAPI.Controllers
                     bool isSuccessful = _orderService.ChangeStatus(model);
                     if (isSuccessful)
                     {
-                         return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, ResponseMessage.SUCCESSFUL));
+                        return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, ResponseMessage.SUCCESSFUL));
                     }
 
                     return Ok(new GenericResponse<string>(false, ResponseMessage.FAILED, ResponseMessage.FAILED));
@@ -209,38 +210,38 @@ namespace AirandWebAPI.Controllers
             }
         }
 
-        // [HttpGet("orders/{id}")]
-        // public IActionResult GetOrders(int id)
-        // {
-        //     try
-        //     {
-        //         var user = (User)HttpContext.Items["User"];
-        //         int userId = user.Id;
-        //         ValidationInfo validationInfo = _changeStatusValidation.Validate(model);
-        //         if (validationInfo.isValid())
-        //         {
-        //             bool isSuccessful = _orderService.ChangeStatus(model);
-        //             if (isSuccessful)
-        //             {
-        //                  return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, ResponseMessage.SUCCESSFUL));
-        //             }
+        [HttpGet("orders/{id}")]
+        public IActionResult GetOrders(string id)
+        {
+            try
+            {
+                var user = (User)HttpContext.Items["User"];
+                int userId = user.Id;
 
-        //             return Ok(new GenericResponse<string>(false, ResponseMessage.FAILED, ResponseMessage.FAILED));
-        //         }
-        //         else
-        //         {
-        //             ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.FAILED, validationInfo.getConcatInvalidationNarrations());
-        //             return BadRequest(errorResponse);
-        //         }
+                if (!string.IsNullOrWhiteSpace(id))
+                {
+                    var orders = _orderService.GetOrder(id);
+                    if (orders != null)
+                    {
+                        return Ok(new GenericResponse<UserOrdersVM>(true, ResponseMessage.SUCCESSFUL, orders));
+                    }
 
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
-        //         return StatusCode(500, exceptionHandler);
+                    return BadRequest(new GenericResponse<string>(false, ResponseMessage.FAILED, "No Order(s) found with transactionId"));
+                }
+                else
+                {
+                    ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.FAILED, "Invalid transaction Id");
+                    return BadRequest(errorResponse);
+                }
 
-        //     }
-        // }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+                return StatusCode(500, exceptionHandler);
+
+            }
+        }
 
     }
 }

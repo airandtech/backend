@@ -12,9 +12,10 @@ using System.IO;
 using AirandWebAPI.Models.Response;
 using Newtonsoft.Json;
 using AirandWebAPI.Models.Dispatch;
-using Microsoft.WindowsAzure.ServiceRuntime;
 using PazarWebApi.Core.Domain;
 using AirandWebAPI.Models;
+using AutoMapper;
+using AirandWebAPI.Models.DTOs;
 
 namespace AirandWebAPI.Services.Concrete
 {
@@ -28,17 +29,20 @@ namespace AirandWebAPI.Services.Concrete
         private IMailer _mailer;
         private IEnumerable<Rider> riders;
         private ISmsService _smsService;
+        private IMapper _mapper;
 
         public OrderService(
             IUnitOfWork unitOfWork,
             INotification notification,
             IMailer mailer,
-            ISmsService smsService)
+            ISmsService smsService,
+            IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _notification = notification;
             _mailer = mailer;
             _smsService = smsService;
+            _mapper = mapper;
         }
         public Order GetById(int id)
         {
@@ -52,13 +56,18 @@ namespace AirandWebAPI.Services.Concrete
             decimal totalAmount = 0;
             List<Order> orders = new List<Order>();
             DispatchRequestInfo pickupDetails;
+            string transactionId = Guid.NewGuid().ToString();
+
+
+            pickupDetails = new DispatchRequestInfo(model.PickUp);
+            _unitOfWork.DispatchInfo.Add(pickupDetails);
+            await _unitOfWork.Complete();
             foreach (var item in model.Delivery)
             {
-                pickupDetails = new DispatchRequestInfo(model.PickUp);
+               
                 order = new Order();
                 var deliverDetails = new DispatchRequestInfo(item);
-                _unitOfWork.DispatchInfo.Add(pickupDetails);
-                await _unitOfWork.Complete();
+               
                 order.PickUpAddressId = pickupDetails.Id;
 
                 _unitOfWork.DispatchInfo.Add(deliverDetails);
@@ -70,6 +79,7 @@ namespace AirandWebAPI.Services.Concrete
                 order.Status = OrderStatus.Created;
                 order.DateCreated = DateTime.UtcNow + TimeSpan.FromHours(1);
                 order.RequestorIdentifier = pickupDetails.Email;
+                order.TransactionId = transactionId;
                 _unitOfWork.Orders.Add(order);
                 await _unitOfWork.Complete();
                 orders.Add(order);
@@ -77,16 +87,16 @@ namespace AirandWebAPI.Services.Concrete
                 //await Task.WhenAll(dispatchDetailsTask, dispatchInfoTask, ordersTask);
             }
             var managerTask = sendToManager(model);
-            var dispatchTask = processDispatch(model);
+            var dispatchTask = processDispatch(model, transactionId);
 
             await Task.WhenAll(managerTask, dispatchTask);
             return new DispatchResponse(model.PickUp.Name, totalAmount, this.getPaymentLink(orders));
         }
 
-        public async Task<bool> Accept(string requestorEmail, int riderId)
+        public async Task<bool> Accept(string transactionId, string requestorEmail, int riderId)
         {
             var orders = _unitOfWork.Orders.Find(
-                x => x.RequestorIdentifier.Equals(requestorEmail) 
+                x => x.TransactionId.Equals(transactionId)
                 && x.Status.Equals(OrderStatus.Created)
                 ).ToList();
             decimal amount = 0;
@@ -122,8 +132,9 @@ namespace AirandWebAPI.Services.Concrete
                 }
 
                 //create invoice 
-                Invoice invoice = new Invoice(amount, requestorEmail, OrderStatus.Pending);
+                Invoice invoice = new Invoice(amount, requestorEmail, OrderStatus.Pending, transactionId);
                 invoice.DateCreated = DateTime.Now;
+
                 if (orders.Count == 1) invoice.OrderId = int.Parse(orderIds.Remove(orderIds.Length - 1, 1));
                 else invoice.OrderIds = orderIds;
 
@@ -140,7 +151,7 @@ namespace AirandWebAPI.Services.Concrete
         public async Task<bool> ReceivePayment(FluttterwaveResponse response)
         {
             var invoice = _unitOfWork.Invoices
-                .Find(x => x.CustomerEmail.Equals(response.data.customer.email) 
+                .Find(x => x.CustomerEmail.Equals(response.data.customer.email)
                 && !x.Status.Equals(OrderStatus.Completed)
                 && response.data.amount.Equals((int)x.Amount)
                 )
@@ -171,6 +182,26 @@ namespace AirandWebAPI.Services.Concrete
             riderOrders.pending = orderWithDetails.Where(x => x.Status.Equals(OrderStatus.Pending)).ToList();
             //}
             return riderOrders;
+        }
+
+        public UserOrdersVM GetOrder(string transactionId)
+        {
+            UserOrdersVM userOrders = new UserOrdersVM();
+            var order = new Order();
+            var orders = _unitOfWork.Orders.GetOrdersLocations(transactionId);
+            var ordersWithLocation = new List<Order>();
+            foreach (var item in orders)
+            {
+                order = item;
+                order.Delivery = _unitOfWork.DispatchInfo.Get(item.DeliveryAddressId);
+                ordersWithLocation.Add(order);
+            }
+            
+            var ordersDto = _mapper.Map<List<OrderDto>>(ordersWithLocation);
+            
+            userOrders.orders = ordersDto;
+            userOrders.pickupDetails = _unitOfWork.DispatchInfo.Get(orders.FirstOrDefault().PickUpAddressId);
+            return userOrders;
         }
 
         public bool ChangeStatus(ChangeStatusVM model)
@@ -243,13 +274,13 @@ namespace AirandWebAPI.Services.Concrete
             {
                 case 1000:
                     return "https://ravesandbox.flutterwave.com/pay/ifieygi2gotd";
-                    //return "https://flutterwave.com/pay/airand1k";
+                //return "https://flutterwave.com/pay/airand1k";
                 case 1500:
                     return "https://ravesandbox.flutterwave.com/pay/aljakozdf7j2";
-                    //return "https://flutterwave.com/pay/airand1k5";
+                //return "https://flutterwave.com/pay/airand1k5";
                 case 2000:
                     return "https://ravesandbox.flutterwave.com/pay/y9tqicwnkw84";
-                    //return "https://flutterwave.com/pay/airand2k";
+                //return "https://flutterwave.com/pay/airand2k";
                 case 2500:
                     return "https://flutterwave.com/pay/airand2k5";
                 case 3000:
@@ -294,7 +325,10 @@ namespace AirandWebAPI.Services.Concrete
             //await sendMailToCustomer(email, orders);
         }
 
-        private async Task processDispatch(RideOrderRequest model)
+
+
+
+        private async Task processDispatch(RideOrderRequest model, string transactionId)
         {
             //get customer details
             var region = _unitOfWork.Regions.Find(x => x.AreaCode.Equals(model.PickUp.AreaCode)).FirstOrDefault();
@@ -306,12 +340,12 @@ namespace AirandWebAPI.Services.Concrete
             List<DriverDistance> top10Distances = getTopClosestRiders(driverCoords, distanceMatrix, 10);
 
             //send notification to riders
-            await sendRequestToRiders(top10Distances, model);
+            await sendRequestToRiders(top10Distances, model, transactionId);
         }
 
-        private async Task sendRequestToRiders(List<DriverDistance> ridersDistance, RideOrderRequest model)
+        private async Task sendRequestToRiders(List<DriverDistance> ridersDistance, RideOrderRequest model, string transactionId)
         {
-            _notification.setRequestData(model);
+            _notification.setRequestData(model, transactionId);
             foreach (var item in ridersDistance)
             {
                 _notification.setDriverDistance(item);

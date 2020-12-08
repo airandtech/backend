@@ -13,6 +13,7 @@ namespace AirandWebAPI.Helpers
             CreateMap<RegisterModel, User>();
             CreateMap<CreateCompanyVM, Company>();
             CreateMap<User, UserDto>();
+            CreateMap<Order, OrderDto>();
         }
     }
 }

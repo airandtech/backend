@@ -5,6 +5,6 @@ namespace AirandWebAPI.Core.Repositories
 {
     public interface IOrderRepository : IRepository<Order>
     {
-        List<Order> GetOrderWithLocations(string id);
+        List<Order> GetOrdersLocations(string id);
     }
 }

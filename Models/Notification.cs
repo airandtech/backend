@@ -21,13 +21,14 @@ namespace AirandWebAPI.Models
 
     public class Data
     {
-        public Data(RideOrderRequest requestData, DriverDistance driverDistance)
+        public Data(RideOrderRequest requestData, DriverDistance driverDistance, string transactionId)
         {
             this.requestorEmail = requestData.PickUp.Email;
             this.requestorName = requestData.PickUp.Name;
             this.address = requestData.PickUp.Address;
             this.distance = driverDistance.distance.text;
             this.time = driverDistance.duration.text;
+            this.transactionId = transactionId;
         }
 
         public string requestorEmail { get; set; }
@@ -35,6 +36,7 @@ namespace AirandWebAPI.Models
         public string address { get; set; }
         public string time { get; set; }
         public string distance { get; set; }
+        public string transactionId { get; set; }
     }
 
     public class PushNotification

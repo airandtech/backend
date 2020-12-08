@@ -18,10 +18,10 @@ namespace AirandWebAPI.Persistence.Repositories
             get { return Context as DataContext; }
         }
 
-        public List<Order> GetOrderWithLocations(string id)
+        public List<Order> GetOrdersLocations(string id)
         {
                 return DataContext.Orders
-                .Where(c => c.RiderId == id)
+                .Where(c => c.TransactionId.Equals(id))
                 .Include(c => c.Delivery)
                 .Include(c => c.PickUp)
                 .ToList();
