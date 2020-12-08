@@ -15,6 +15,7 @@ namespace AirandWebAPI.Core.Domain
         public string ProfilePicture { get; set; }
         public string Bio { get; set; }
         public string Token { get; set; }
+        public int CreatedBy { get; set; }
         public bool isVerified { get; set; }
         public bool isCompany { get; set; }
         

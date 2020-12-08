@@ -11,6 +11,7 @@ using System.Transactions;
 using AirandWebAPI.Models.Auth;
 using AutoMapper;
 using AirandWebAPI.Models.DTOs;
+using System.Collections.Generic;
 
 namespace AirandWebAPI.Services.Concrete
 {
@@ -88,6 +89,8 @@ namespace AirandWebAPI.Services.Concrete
                     user = new User();
                     user.Username = item.Phone;
                     user.FirstName = item.Name;
+                    user.CreatedBy = UserId;
+                    user.Role = Role.Rider;
                     AuthenticateResponse authResponse = await _userService.Create(user, item.Phone);
 
                     var existingRider = _unitOfWork.Riders.SingleOrDefault(x => x.UserId.Equals(authResponse.Id));
@@ -96,7 +99,8 @@ namespace AirandWebAPI.Services.Concrete
 
                     rider = new Rider();
                     rider.UserId = authResponse.Id;
-                    rider.DateCreated = DateTime.Now;
+                    rider.CreatedBy = UserId;
+                    rider.DateCreated = DateTime.UtcNow.AddHours(1);
                     _unitOfWork.Riders.Add(rider);
                 }
                 await _unitOfWork.Complete();
@@ -141,9 +145,12 @@ namespace AirandWebAPI.Services.Concrete
                 if (company != null)
                     userCompanyRider.company = company;
 
-                var riders = _unitOfWork.Riders.Find(x => x.UserId.Equals(user.Id)).ToList();
-                if (riders != null)
-                    userCompanyRider.riders = riders;
+                var riders = _unitOfWork.Users.Find(x => x.CreatedBy.Equals(UserId) && x.Role.Equals(Role.Rider)).ToList();
+                if (user != null){
+
+                    userCompanyRider.riders = _mapper.Map<IEnumerable<UserDto>>(riders);
+                }
+                    
             }
 
             return userCompanyRider;
