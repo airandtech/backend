@@ -51,7 +51,7 @@ namespace AirandWebAPI.Services
 
             Notification notification = new Notification(title, message, "");
             Data data = new Data(requestData, driverDistance, transactionId);
-            PushNotification pushObj = new PushNotification(notification, new List<string>(){mobile_token}, data);
+            PushNotification pushObj = new PushNotification(new List<string>(){mobile_token}, data);
            
 
             HttpResponseMessage response = await client.PostAsJsonAsync("send", pushObj);
