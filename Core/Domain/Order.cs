@@ -21,5 +21,6 @@ namespace AirandWebAPI.Core.Domain
         public string RequestorIdentifier {get;set;}
         public string TransactionId {get;set;}
         public string Status {get;set;}
+        public int PaymentStatus {get;set;} = 0; //0 == Unpaid, 1 == Paid
     }
 }

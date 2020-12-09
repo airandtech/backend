@@ -80,6 +80,7 @@ namespace AirandWebAPI.Services.Concrete
                 order.DateCreated = DateTime.UtcNow + TimeSpan.FromHours(1);
                 order.RequestorIdentifier = pickupDetails.Email;
                 order.TransactionId = transactionId;
+                order.PaymentStatus = 0;
                 _unitOfWork.Orders.Add(order);
                 await _unitOfWork.Complete();
                 orders.Add(order);
@@ -163,6 +164,13 @@ namespace AirandWebAPI.Services.Concrete
                 invoice.AmountPaid = (decimal)(response.data.amount);
                 invoice.Status = OrderStatus.Completed;
                 invoice.ResponseBody = JsonConvert.SerializeObject(response);
+                await _unitOfWork.Complete();
+
+                var orders = _unitOfWork.Orders.Find(x => x.TransactionId.Equals(invoice.TransactionId));
+                foreach (var item in orders)
+                {
+                    item.PaymentStatus = 1;
+                }
                 await _unitOfWork.Complete();
                 return true;
             }
