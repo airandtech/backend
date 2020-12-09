@@ -156,7 +156,7 @@ namespace AirandWebAPI.Services.Concrete
                 && !x.Status.Equals(OrderStatus.Completed)
                 && response.data.amount.Equals((int)x.Amount)
                 )
-                .OrderByDescending(x => x.LastModified)
+                .OrderByDescending(x => x.Id)
                 .FirstOrDefault();
             if (invoice != null)
             {
@@ -166,7 +166,7 @@ namespace AirandWebAPI.Services.Concrete
                 invoice.ResponseBody = JsonConvert.SerializeObject(response);
                 await _unitOfWork.Complete();
 
-                var orders = _unitOfWork.Orders.Find(x => x.TransactionId.Equals(invoice.TransactionId));
+                var orders = _unitOfWork.Orders.Find(x => x.TransactionId.Equals(invoice.AirandTxnId));
                 foreach (var item in orders)
                 {
                     item.PaymentStatus = 1;
