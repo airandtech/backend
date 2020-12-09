@@ -251,7 +251,7 @@ namespace AirandWebAPI.Services.Concrete
 
                     await _mailer.SendMailAsync(requestorEmail, requestorEmail, "Airand: Dispatch Request", formattedEmail);
                 }
-
+                
                 //send sms notification
                 string message = $"Airand: Your order has been accepted. See payment link {paymentLink}";
                 int pickupAddressId = orders.FirstOrDefault().PickUpAddressId;
@@ -465,7 +465,7 @@ namespace AirandWebAPI.Services.Concrete
                 string message = $"Airand: New Dispatch Request click {orderLink} to view details. ";
                 SmsBody smsBody = new SmsBody("Airand", item.Phone, message);
 
-                //await _smsService.SendAsync(smsBody);
+                await _smsService.SendAsync(smsBody);
             }
 
 
