@@ -210,8 +210,8 @@ namespace AirandWebAPI.Controllers
             }
         }
 
-        [HttpGet("orders/{id}")]
-        public IActionResult GetOrders(string id)
+        [HttpGet("order/{id}")]
+        public IActionResult GetOrder(string id)
         {
             try
             {
