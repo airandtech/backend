@@ -17,8 +17,8 @@ namespace AirandWebAPI.Services
     {
         private readonly AppSettings _appSettings;
 
-        private readonly string apiKey = "MmRkYmRjMzA5MmMwZmFmMjNjMGQwYThhY2Q3OTcxOWE6MGM2OWJhNGFiYzk5MjBlMzliNTk4ZmQ2OTEwYjYwYjg=";
-
+        //private readonly string apiKey = "MmRkYmRjMzA5MmMwZmFmMjNjMGQwYThhY2Q3OTcxOWE6MGM2OWJhNGFiYzk5MjBlMzliNTk4ZmQ2OTEwYjYwYjg=";
+        private readonly string apiKey = "YjJlNGQ2YzA3ZjRlMjUyYjUxZjY1ZjlhMzA4NTMwZGI6NzQ5MzBmY2MxMDJjOGQ2NmEwY2FiYzVmYWFjZGUzZGY=";
         
 
         public SmsService(IOptions<AppSettings> appSettings)
