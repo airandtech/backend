@@ -101,6 +101,35 @@ namespace AirandWebAPI.Controllers
         }
 
         [AllowAnonymous]
+        [HttpGet("accept/{transactionId}/{requestorEmail}/{riderId}")]
+        public async Task<IActionResult> AcceptForRider(string transactionId, string requestorEmail, string riderId)
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(transactionId) && !string.IsNullOrWhiteSpace(requestorEmail) && !string.IsNullOrWhiteSpace(riderId))
+                {
+                    
+                    bool response = await _orderService.Accept(transactionId, requestorEmail, int.Parse(riderId));
+                    if (response)
+                        return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, ResponseMessage.SUCCESSFUL));
+                    return Ok(new GenericResponse<string>(false, "Order is no longer available", ResponseMessage.FAILED));
+                }
+                else
+                {
+                    ErrorResponse errorResponse = new ErrorResponse(false, "Email is required", ResponseMessage.FAILED);
+                    return BadRequest(errorResponse);
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+                return StatusCode(500, exceptionHandler);
+
+            }
+        }
+
+
+        [AllowAnonymous]
         [HttpGet("test")]
         public async Task<IActionResult> test()
         {
