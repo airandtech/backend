@@ -153,7 +153,7 @@ namespace AirandWebAPI.Controllers
                 {
                     CompanyWithDetailsVM companyWithDetailsVM = await _companyService.CreateCompanyWithDetails(model, userId);
                     if (companyWithDetailsVM != null)
-                        return Ok(new GenericResponse<CompanyWithDetailsVM>(true, "Rider(s) added successfully !!!", companyWithDetailsVM));
+                        return Ok(new GenericResponse<CompanyWithDetailsVM>(true, "Company added successfully !!!", companyWithDetailsVM));
 
                     return BadRequest(new GenericResponse<string>(false, "Error occurred in processing", ResponseMessage.FAILED));
                 }
