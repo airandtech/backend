@@ -239,13 +239,13 @@ namespace AirandWebAPI.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("order/{id}")]
         public IActionResult GetOrder(string id)
         {
             try
             {
-                var user = (User)HttpContext.Items["User"];
-                int userId = user.Id;
+               
 
                 if (!string.IsNullOrWhiteSpace(id))
                 {
