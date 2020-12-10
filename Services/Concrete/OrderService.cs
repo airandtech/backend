@@ -23,7 +23,7 @@ namespace AirandWebAPI.Services.Concrete
     {
         private int take = 10;
         private int skip = 0;
-        private readonly string notificationBaseUrl = "https://airandapi.azurewebsites.net";
+        private readonly string notificationBaseUrl = "https://airandclientsite.azurewebsites.net/";
         private IUnitOfWork _unitOfWork;
         private INotification _notification;
         private IMailer _mailer;
@@ -87,7 +87,7 @@ namespace AirandWebAPI.Services.Concrete
 
                 //await Task.WhenAll(dispatchDetailsTask, dispatchInfoTask, ordersTask);
             }
-            var managerTask = sendToManager(model);
+            var managerTask = sendToManager(model, transactionId);
             var dispatchTask = processDispatch(model, transactionId);
 
             await Task.WhenAll(managerTask, dispatchTask);
@@ -437,10 +437,10 @@ namespace AirandWebAPI.Services.Concrete
             return ordersList;
         }
 
-        private async Task sendToManager(RideOrderRequest model)
+        private async Task sendToManager(RideOrderRequest model, string transactionId)
         {
 
-            string orderLink = $"{notificationBaseUrl}/order/{model.PickUp.Email}";
+            string orderLink = $"{notificationBaseUrl}/orderDetails?id={transactionId}";
             //get all managers
             var managers = _unitOfWork.DispatchManagers.GetAll();
             var folderName = Path.Combine("Resources", "EmailTemplate");
