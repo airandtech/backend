@@ -88,6 +88,7 @@ namespace AirandWebAPI.Services.Concrete
                 {
                     user = new User();
                     user.Username = item.Phone;
+                    user.Phone = item.Phone;
                     user.FirstName = item.Name;
                     user.CreatedBy = UserId;
                     user.Role = Role.Rider;
