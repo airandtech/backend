@@ -180,8 +180,6 @@ namespace AirandWebAPI.Services.Concrete
         public RiderOrders GetOrders(int userId)
         {
             RiderOrders riderOrders = new RiderOrders();
-            // var rider = _unitOfWork.Riders.Find(x => x.UserId.Equals(userId)).FirstOrDefault();
-            // if(rider != null){
             var dispatchDetails = _unitOfWork.DispatchInfo.GetAll();
             var orders = _unitOfWork.Orders.Find(x => x.RiderId == userId.ToString()).OrderByDescending(x => x.DateCreated).ToList();
             var orderWithDetails = getOrderWithDetails(orders, dispatchDetails);
@@ -285,17 +283,17 @@ namespace AirandWebAPI.Services.Concrete
             {
                 case 1000:
                     return "https://ravesandbox.flutterwave.com/pay/ifieygi2gotd";
-                //return "https://flutterwave.com/pay/airand1k";
+                //return "https://flutterwave.com/pay/ehaynzymuswd";
                 case 1500:
                     return "https://ravesandbox.flutterwave.com/pay/aljakozdf7j2";
-                //return "https://flutterwave.com/pay/airand1k5";
+                //return "https://flutterwave.com/pay/ejunjscgtymy";
                 case 2000:
                     return "https://ravesandbox.flutterwave.com/pay/y9tqicwnkw84";
-                //return "https://flutterwave.com/pay/airand2k";
+                //return "https://flutterwave.com/pay/7ubgyhnbdmds";
                 case 2500:
-                    return "https://flutterwave.com/pay/airand2k5";
+                    return "https://flutterwave.com/pay/btfzwouc7cig";
                 case 3000:
-                    return "https://flutterwave.com/pay/airand3k";
+                    return "https://flutterwave.com/pay/m4ibqgj62bxo";
                 case 3500:
                     return "https://flutterwave.com/pay/wltb9wjo6ke5";
                 case 4000:
@@ -348,10 +346,10 @@ namespace AirandWebAPI.Services.Concrete
             List<DriverDistance> top10Distances = getTopClosestRiders(driverCoords, distanceMatrix, 10);
 
             //send notification to riders
-            await sendRequestToRiders(top10Distances, model, transactionId);
+            await sendRequestToRidersAndManagers(top10Distances, model, transactionId);
         }
 
-        private async Task sendRequestToRiders(List<DriverDistance> ridersDistance, RideOrderRequest model, string transactionId)
+        private async Task sendRequestToRidersAndManagers(List<DriverDistance> ridersDistance, RideOrderRequest model, string transactionId)
         {
             _notification.setRequestData(model, transactionId);
             foreach (var item in ridersDistance)
@@ -495,13 +493,13 @@ namespace AirandWebAPI.Services.Concrete
                 {
                     var line = await sr.ReadToEndAsync();
 
-                    var formattedEmail = string.Format(line, item.Name, orderLink);
+                    var formattedEmail = string.Format(line, item.Name, orderLink, $"{rider.User.FirstName} {rider.User.LastName}", rider.User.Phone );
 
                     await _mailer.SendMailAsync(item.Email, item.Name, "Airand: Dispatch Request", formattedEmail);
                 }
 
                 //send sms notification
-                string message = $"Airand: New Dispatch Request click {orderLink} to view details. ";
+                string message = $"Airand: Dispatch Request for {rider.User.FirstName} ({rider.User.Phone}) click {orderLink} to view details. ";
                 SmsBody smsBody = new SmsBody("Airand", item.Phone, message);
 
                 await _smsService.SendAsync(smsBody);
