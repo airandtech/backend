@@ -477,7 +477,7 @@ namespace AirandWebAPI.Services.Concrete
             var company = _unitOfWork.Companies.Find(x => x.UserId.Equals(rider.CreatedBy)).FirstOrDefault();
             if (company == null)
                 return;
-            var dispatchManagers = _unitOfWork.DispatchManagers.Find(x => x.CompanyId.Equals(company.Id));
+            var dispatchManagers = _unitOfWork.DispatchManagers.Find(x => x.CompanyId.Equals(company.Id)).ToList();
             if (dispatchManagers == null)
                 return;
 
