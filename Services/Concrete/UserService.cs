@@ -64,8 +64,9 @@ namespace AirandWebAPI.Services.Concrete
             var existingUser = _unitOfWork.Users.SingleOrDefault(x => x.Username == user.Username);
 
             if (existingUser != null){
+                return null;
                 //var authRequest = new AuthenticateRequest(user.Username, password);
-                return Authenticate(new AuthenticateRequest(user.Username, password));
+               // return Authenticate(new AuthenticateRequest(user.Username, password));
                 // token = generateJwtToken(existingUser);
                 // return new AuthenticateResponse(existingUser, token);
             } 

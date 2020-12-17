@@ -52,7 +52,10 @@ namespace WebApi.Controllers
                 if (validationInfo.isValid())
                 {
                     AuthenticateResponse response = await _userService.Create(user, model.Password);
-                    return Ok(response);
+                    if(response!= null)
+                        return Ok(response);
+                    ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.REGISTRATION_FAILED, "User already exists");
+                    return BadRequest(errorResponse);  
                 }
                 else
                 {
