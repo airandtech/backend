@@ -151,7 +151,10 @@ namespace AirandWebAPI.Services.Concrete
 
                     userCompanyRider.riders = _mapper.Map<IEnumerable<UserDto>>(riders);
                 }
-                    
+
+                var managers = _unitOfWork.DispatchManagers.Find( x=> x.CompanyId.Equals(company.Id)).ToList();
+                var managerDto = _mapper.Map<IEnumerable<DispatchManagerDto>>(managers);
+                userCompanyRider.managers = managerDto;
             }
 
             return userCompanyRider;

@@ -14,6 +14,7 @@ namespace AirandWebAPI.Helpers
             CreateMap<CreateCompanyVM, Company>();
             CreateMap<User, UserDto>();
             CreateMap<Order, OrderDto>();
+            CreateMap<DispatchManager, DispatchManagerDto>();
         }
     }
 }

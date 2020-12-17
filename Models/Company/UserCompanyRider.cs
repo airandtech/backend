@@ -11,5 +11,6 @@ namespace AirandWebAPI.Models.Company
         public UserDto userDto {get;set;}
         public Core.Domain.Company company {get;set;}
         public IEnumerable<UserDto> riders {get;set;}
+        public IEnumerable<DispatchManagerDto> managers {get;set;}
     }
 }
