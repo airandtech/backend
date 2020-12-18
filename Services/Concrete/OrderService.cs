@@ -16,6 +16,7 @@ using PazarWebApi.Core.Domain;
 using AirandWebAPI.Models;
 using AutoMapper;
 using AirandWebAPI.Models.DTOs;
+using Microsoft.Extensions.Logging;
 
 namespace AirandWebAPI.Services.Concrete
 {
@@ -30,19 +31,22 @@ namespace AirandWebAPI.Services.Concrete
         private IEnumerable<Rider> riders;
         private ISmsService _smsService;
         private IMapper _mapper;
+        private readonly ILogger _logger;
 
         public OrderService(
             IUnitOfWork unitOfWork,
             INotification notification,
             IMailer mailer,
             ISmsService smsService,
-            IMapper mapper)
+            IMapper mapper,
+            ILogger<OrderService> logger)
         {
             _unitOfWork = unitOfWork;
             _notification = notification;
             _mailer = mailer;
             _smsService = smsService;
             _mapper = mapper;
+            _logger = logger;
         }
         public Order GetById(int id)
         {
@@ -340,13 +344,32 @@ namespace AirandWebAPI.Services.Concrete
             var region = _unitOfWork.Regions.Find(x => x.AreaCode.Equals(model.PickUp.AreaCode)).FirstOrDefault();
 
             //get distance between cutomer and riders
-            (List<DriverCoordinates> driverCoords, DistanceMatrixResponse distanceMatrix) = await getDistanceFromCustomerToRiders(region);
+            //(List<DriverCoordinates> driverCoords, DistanceMatrixResponse distanceMatrix) = await getDistanceFromCustomerToRiders(region);
 
+            //get all the riders
+            var ridersCoordinates = getRidersCoordinates();
+            var chunkedRiders = ridersCoordinates.ChunkBy(10);
+            foreach (var item in chunkedRiders)
+            {
+                 DistanceMatrixResponse distanceMatrix =
+                await DistanceCalculator.Process(item, region.Latitude, region.Longitude);
+                List<DriverDistance> top10Distances = getTopClosestRiders(item, distanceMatrix, 10);
+                if(top10Distances != null){
+                    await sendRequestToRidersAndManagers(top10Distances, model, transactionId);
+                    //return;
+                }
+            }
+           
             //get the 10 closest riders
-            List<DriverDistance> top10Distances = getTopClosestRiders(driverCoords, distanceMatrix, 10);
+            // List<DriverDistance> top10Distances = getTopClosestRiders(driverCoords, distanceMatrix, 10);
+            // if(top10Distances != null){
+            //     await sendRequestToRidersAndManagers(top10Distances, model, transactionId);
+            //     return;
+            // }
+             _logger.LogInformation("++++ No Riders found");
 
             //send notification to riders
-            await sendRequestToRidersAndManagers(top10Distances, model, transactionId);
+           
         }
 
         private async Task sendRequestToRidersAndManagers(List<DriverDistance> ridersDistance, RideOrderRequest model, string transactionId)
@@ -390,6 +413,9 @@ namespace AirandWebAPI.Services.Concrete
 
             DistanceMatrixResponse distanceMatrix =
                 await DistanceCalculator.Process(ridersCoordinates, region.Latitude, region.Longitude);
+
+            
+            //await sendRequestToRidersAndManagers(top10Distances, model, transactionId)
 
             return (ridersCoordinates, distanceMatrix);
         }
