@@ -45,6 +45,7 @@ namespace AirandWebAPI.Controllers
             _logger = logger;
         }
 
+        [AllowAnonymous]
         [HttpPost("order")]
         public async Task<IActionResult> Order([FromBody] RideOrderRequest model)
         {
