@@ -89,7 +89,7 @@ namespace WebApi.Controllers
                     var isAvailable = await _userService.CheckPhone(phone);
                     if (isAvailable)
                         return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, "Successful"));
-                    return BadRequest(new GenericResponse<string>(false, ResponseMessage.FAILED, "Failed to verify phone number"));
+                    return BadRequest(new GenericResponse<string>(false, "Failed to verify phone number", ResponseMessage.FAILED));
                 }
                 return BadRequest(new { message = "Phone number is required" });
             }

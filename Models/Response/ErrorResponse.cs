@@ -7,7 +7,7 @@ namespace AirandWebAPI.Models{
          public ErrorResponse(bool status, string responseMessage, string validationErrors){
 
             this.status = status;
-            this.message = validationErrors;
+            this.message = responseMessage;
             this.error = validationErrors;
         }
     }

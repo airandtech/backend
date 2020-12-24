@@ -15,6 +15,7 @@ namespace AirandWebAPI.Services.Contract
         Task<bool> AddRiders(AddRidersVM model, int UserId);
         Task<CompanyWithDetailsVM> CreateCompanyWithDetails(CompanyWithDetailsVM company, int UserId);
         UserCompanyRider GetCompanyDetails(int UserId);
+        Task<bool> DeleteRider(int riderId);
     }
 
 }

@@ -128,6 +128,32 @@ namespace AirandWebAPI.Controllers
             }
         }
 
+        [HttpDelete("rider/{id}")]
+        public async Task<IActionResult> DeleteRider(int id)
+        {
+            try
+            {
+                if (id > 0)
+                {
+                    bool isSuccessful = await _companyService.DeleteRider(id);
+                    if (isSuccessful)
+                        return Ok(new GenericResponse<string>(true, "Rider deleted !!!", ResponseMessage.SUCCESSFUL));
+
+                    return BadRequest(new GenericResponse<string>(false, "Error occurred in processing", ResponseMessage.FAILED));
+                }
+                else
+                {
+                    ErrorResponse errorResponse = new ErrorResponse(false, "Invalid Rider Id" , ResponseMessage.FAILED);
+                    return BadRequest(errorResponse);
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+                return StatusCode(500, exceptionHandler);
+            }
+        }
+
         [HttpPost("createWithDetails/")]
         public async Task<IActionResult> CreateCompanyWithDetails([FromBody] CompanyWithDetailsVM model)
         {

@@ -159,5 +159,22 @@ namespace AirandWebAPI.Services.Concrete
 
             return userCompanyRider;
         }
+
+        public async Task<bool> DeleteRider(int riderId)
+        {
+            Rider rider = _unitOfWork.Riders.Get(riderId);
+            if(rider != null){
+                int userId = rider.UserId;
+                User user = _unitOfWork.Users.Get(userId);
+                if(user != null){
+                    _unitOfWork.Riders.Remove(rider);
+                    _unitOfWork.Users.Remove(user);
+                    await _unitOfWork.Complete();
+                    return true;
+                }
+            }
+           
+            return false;
+        }
     }
 }
