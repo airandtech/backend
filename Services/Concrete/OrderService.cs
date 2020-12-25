@@ -286,14 +286,14 @@ namespace AirandWebAPI.Services.Concrete
             switch ((int)cost)
             {
                 case 1000:
-                    return "https://ravesandbox.flutterwave.com/pay/ifieygi2gotd";
-                //return "https://flutterwave.com/pay/ehaynzymuswd";
+                    //return "https://ravesandbox.flutterwave.com/pay/ifieygi2gotd";
+                    return "https://flutterwave.com/pay/ehaynzymuswd";
                 case 1500:
-                    return "https://ravesandbox.flutterwave.com/pay/aljakozdf7j2";
-                //return "https://flutterwave.com/pay/ejunjscgtymy";
+                    //return "https://ravesandbox.flutterwave.com/pay/aljakozdf7j2";
+                    return "https://flutterwave.com/pay/ejunjscgtymy";
                 case 2000:
-                    return "https://ravesandbox.flutterwave.com/pay/y9tqicwnkw84";
-                //return "https://flutterwave.com/pay/7ubgyhnbdmds";
+                    //return "https://ravesandbox.flutterwave.com/pay/y9tqicwnkw84";
+                    return "https://flutterwave.com/pay/7ubgyhnbdmds";
                 case 2500:
                     return "https://flutterwave.com/pay/btfzwouc7cig";
                 case 3000:
@@ -351,25 +351,26 @@ namespace AirandWebAPI.Services.Concrete
             var chunkedRiders = ridersCoordinates.ChunkBy(10);
             foreach (var item in chunkedRiders)
             {
-                 DistanceMatrixResponse distanceMatrix =
-                await DistanceCalculator.Process(item, region.Latitude, region.Longitude);
+                DistanceMatrixResponse distanceMatrix =
+               await DistanceCalculator.Process(item, region.Latitude, region.Longitude);
                 List<DriverDistance> top10Distances = getTopClosestRiders(item, distanceMatrix, 10);
-                if(top10Distances != null){
+                if (top10Distances != null)
+                {
                     await sendRequestToRidersAndManagers(top10Distances, model, transactionId);
                     //return;
                 }
             }
-           
+
             //get the 10 closest riders
             // List<DriverDistance> top10Distances = getTopClosestRiders(driverCoords, distanceMatrix, 10);
             // if(top10Distances != null){
             //     await sendRequestToRidersAndManagers(top10Distances, model, transactionId);
             //     return;
             // }
-             _logger.LogInformation("++++ No Riders found");
+            _logger.LogInformation("++++ No Riders found");
 
             //send notification to riders
-           
+
         }
 
         private async Task sendRequestToRidersAndManagers(List<DriverDistance> ridersDistance, RideOrderRequest model, string transactionId)
@@ -414,7 +415,7 @@ namespace AirandWebAPI.Services.Concrete
             DistanceMatrixResponse distanceMatrix =
                 await DistanceCalculator.Process(ridersCoordinates, region.Latitude, region.Longitude);
 
-            
+
             //await sendRequestToRidersAndManagers(top10Distances, model, transactionId)
 
             return (ridersCoordinates, distanceMatrix);
@@ -519,7 +520,7 @@ namespace AirandWebAPI.Services.Concrete
                 {
                     var line = await sr.ReadToEndAsync();
 
-                    var formattedEmail = string.Format(line, item.Name, orderLink, $"{rider.User.FirstName} {rider.User.LastName}", rider.User.Phone );
+                    var formattedEmail = string.Format(line, item.Name, orderLink, $"{rider.User.FirstName} {rider.User.LastName}", rider.User.Phone);
 
                     await _mailer.SendMailAsync(item.Email, item.Name, "Airand: Dispatch Request", formattedEmail);
                 }
