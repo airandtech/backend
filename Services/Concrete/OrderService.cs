@@ -426,7 +426,7 @@ namespace AirandWebAPI.Services.Concrete
             //Dictionary<int, Coordinates> dict = new Dictionary<int, Coordinates>();
             List<DriverCoordinates> driverCoordinates = new List<DriverCoordinates>();
 
-            riders = _unitOfWork.Riders.GetAllRidersWithUsers();
+            riders = _unitOfWork.Riders.GetAllActiveRidersWithUsers();
 
             foreach (var item in riders)
             {

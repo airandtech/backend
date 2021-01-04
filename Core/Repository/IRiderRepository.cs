@@ -6,5 +6,6 @@ namespace AirandWebAPI.Core.Repositories
     public interface IRiderRepository : IRepository<Rider>
     {
         IEnumerable<Rider> GetAllRidersWithUsers();
+        IEnumerable<Rider> GetAllActiveRidersWithUsers();
     }
 }

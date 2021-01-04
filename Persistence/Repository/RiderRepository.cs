@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AirandWebAPI.Core.Domain;
@@ -17,6 +18,13 @@ namespace AirandWebAPI.Persistence.Repositories
         public IEnumerable<Rider> GetAllRidersWithUsers()
         {
             return DataContext.Riders
+                .Include(c => c.User)
+                .ToList();
+        }
+        public IEnumerable<Rider> GetAllActiveRidersWithUsers()
+        {
+            return DataContext.Riders
+                .Where(x => x.LastModified > DateTime.Now.AddHours(-1))
                 .Include(c => c.User)
                 .ToList();
         }
