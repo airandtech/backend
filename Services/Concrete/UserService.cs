@@ -42,7 +42,9 @@ namespace AirandWebAPI.Services.Concrete
             // authentication successful so generate jwt token
             var token = generateJwtToken(user);
 
-            return new AuthenticateResponse(user, token);
+            bool isSetupComplete = _unitOfWork.Companies.Find(x => x.UserId.Equals(user.Id)).Any();
+
+            return new AuthenticateResponse(user, token, isSetupComplete);
         }
 
         public IEnumerable<User> GetAll()
@@ -83,7 +85,7 @@ namespace AirandWebAPI.Services.Concrete
 
             var token = generateJwtToken(user);
 
-            return new AuthenticateResponse(user, token);
+            return new AuthenticateResponse(user, token, false);
         }
 
         private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
