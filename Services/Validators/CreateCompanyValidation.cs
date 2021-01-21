@@ -37,8 +37,8 @@ namespace TheHangout.Services
             if (string.IsNullOrWhiteSpace(model.OfficeArea))
                 validationInfo.addInvalidationNarration("Office Area required");
 
-            if (_unitOfWork.Companies.Find(x => x.UserId.Equals(model.UserId)).Count() > 0)
-                validationInfo.addInvalidationNarration("Company already exists for user");
+            // if (_unitOfWork.Companies.Find(x => x.UserId.Equals(model.UserId)).Count() > 0)
+            //     validationInfo.addInvalidationNarration("Company already exists for user");
 
             return validationInfo;
         }
