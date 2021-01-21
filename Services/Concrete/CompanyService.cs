@@ -116,20 +116,28 @@ namespace AirandWebAPI.Services.Concrete
         {
             CompanyWithDetailsVM companyWithDetails = null;
 
-            var company = _mapper.Map<Company>(model.company);
-            company = await this.Create(company, UserId);
-            if (company != null)
-            {
-                companyWithDetails = model;
-                AddRidersVM addRidersVM = new AddRidersVM();
-                addRidersVM.ridersDetails = model.ridersDetails;
-                var isRiderAdded = await this.AddRiders(addRidersVM, UserId);
+            var existingCompany = _unitOfWork.Companies.SingleOrDefault(x => x.UserId.Equals(UserId));
+            if(existingCompany != null){
+                var company = this.updateCompany(existingCompany, model.company);
+                var user = this.updateUser(UserId, model.user);
+                return model;
+            }else{
 
-                AddDispatchManagerVM addDispatchManager = new AddDispatchManagerVM();
-                addDispatchManager.managerDetails = model.managerDetails;
-                var isManagerAdded = await this.AddDispatchManagers(addDispatchManager, UserId);
+                var company = _mapper.Map<Company>(model.company);
+                company = await this.Create(company, UserId);
+                if (company != null)
+                {
+                    companyWithDetails = model;
+                    AddRidersVM addRidersVM = new AddRidersVM();
+                    addRidersVM.ridersDetails = model.ridersDetails;
+                    var isRiderAdded = await this.AddRiders(addRidersVM, UserId);
+
+                    AddDispatchManagerVM addDispatchManager = new AddDispatchManagerVM();
+                    addDispatchManager.managerDetails = model.managerDetails;
+                    var isManagerAdded = await this.AddDispatchManagers(addDispatchManager, UserId);
+                }
+                return companyWithDetails;
             }
-            return companyWithDetails;
         }
 
         public UserCompanyRider GetCompanyDetails(int UserId)
@@ -175,6 +183,49 @@ namespace AirandWebAPI.Services.Concrete
             }
            
             return false;
+        }
+   
+        private Company updateCompany( Company existingCompany, CreateCompanyVM update){
+            //not good practice
+            //var existingCompany = _unitOfWork.Companies.SingleOrDefault(x => x.UserId.Equals(UserId));
+
+            if(!string.IsNullOrWhiteSpace(update.AccountName)){
+                existingCompany.AccountName = update.AccountName;
+            }
+            if(!string.IsNullOrWhiteSpace(update.AccountNumber)){
+                existingCompany.AccountNumber = update.AccountNumber;
+            }
+            if(!string.IsNullOrWhiteSpace(update.CompanyAddress)){
+                existingCompany.CompanyAddress = update.CompanyAddress;
+            }
+            if(!string.IsNullOrWhiteSpace(update.BankName)){
+                existingCompany.BankName = update.BankName;
+            }
+            if(!string.IsNullOrWhiteSpace(update.CompanyName)){
+                existingCompany.CompanyName = update.CompanyName;
+            }
+            if(!string.IsNullOrWhiteSpace(update.OfficeArea)){
+                existingCompany.OfficeArea = update.OfficeArea;
+            }
+
+            var resp = _unitOfWork.Complete();
+            return existingCompany;
+        }
+
+        private User updateUser(int userId, UserDto user)
+        {
+            var existingUser = _unitOfWork.Users.Get(userId);
+            if(!string.IsNullOrWhiteSpace(user.FirstName)){
+                existingUser.FirstName = user.FirstName;
+            }
+            if(!string.IsNullOrWhiteSpace(user.LastName)){
+                existingUser.LastName = user.LastName;
+            }
+            if(!string.IsNullOrWhiteSpace(user.Phone)){
+                existingUser.Phone = user.Phone;
+            }
+            var resp =_unitOfWork.Complete();
+            return existingUser;
         }
     }
 }
