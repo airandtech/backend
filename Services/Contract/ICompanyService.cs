@@ -16,6 +16,7 @@ namespace AirandWebAPI.Services.Contract
         Task<CompanyWithDetailsVM> CreateCompanyWithDetails(CompanyWithDetailsVM company, int UserId);
         UserCompanyRider GetCompanyDetails(int UserId);
         Task<bool> DeleteRider(int riderId);
+        DashboardStatisticsVM GetDashboardStatistics(int userId);
     }
 
 }

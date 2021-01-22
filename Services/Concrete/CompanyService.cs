@@ -186,7 +186,33 @@ namespace AirandWebAPI.Services.Concrete
            
             return false;
         }
-   
+        public DashboardStatisticsVM GetDashboardStatistics(int userId)
+        {
+            DashboardStatisticsVM dashboardStatistics = new DashboardStatisticsVM();
+            var ridersWithUsers = _unitOfWork.Riders.GetAllRidersWithUsers().Where(x => x.CreatedBy.Equals(userId)).OrderByDescending(x => x.LastModified).Take(5).ToList();
+            int[] ridersId = ridersWithUsers.Select(x => x.Id).ToArray();
+            var allOrders = _unitOfWork.Orders.Find(x => x.RiderId != null).ToList();
+
+            dashboardStatistics.riders = ridersWithUsers;
+
+            if(allOrders.Any() && ridersId.Count() > 0){
+                var orders = allOrders.Where(x => ((IList<int>)ridersId).Contains(int.Parse(x.RiderId))).ToList();
+            
+                // dashboardStatistics.riders = ridersWithUsers;
+                dashboardStatistics.todayTransactions = orders.Where(x => x.LastModified.Date.Equals(DateTime.Now.Date)).ToList();
+                dashboardStatistics.todayTransactionsVolume = dashboardStatistics.todayTransactions.Count();
+                dashboardStatistics.todayTransactionsValue = dashboardStatistics.todayTransactions.Sum(item => item.Cost);
+                dashboardStatistics.totalTransactions = orders.ToList();
+                dashboardStatistics.totalTransactionsValue = orders.Sum(x => x.Cost);
+                dashboardStatistics.todayTransactionsVolume = orders.Count();
+                var successfulTransactions = orders.Where(x => x.PaymentStatus.Equals(1));
+                dashboardStatistics.totalSuccessfulVolume = successfulTransactions.Count();
+                dashboardStatistics.totalSuccessValue = successfulTransactions.Sum(x => x.Cost);
+                
+            }
+
+            return dashboardStatistics;
+        }
         private Company updateCompany( Company existingCompany, CreateCompanyVM update){
             //not good practice
             //var existingCompany = _unitOfWork.Companies.SingleOrDefault(x => x.UserId.Equals(UserId));
@@ -229,5 +255,6 @@ namespace AirandWebAPI.Services.Concrete
             var resp =_unitOfWork.Complete();
             return existingUser;
         }
+
     }
 }

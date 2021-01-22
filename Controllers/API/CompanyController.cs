@@ -220,6 +220,27 @@ namespace AirandWebAPI.Controllers
                 return StatusCode(500, exceptionHandler);
             }
         }
+        
+        [HttpGet("dashboard/")]
+        public async Task<IActionResult> GetDashboardStatistics(){
+            try
+            {
+                var user = (User)HttpContext.Items["User"];
+                int userId = user.Id;
 
+
+                DashboardStatisticsVM dashboardStatistics = _companyService.GetDashboardStatistics(userId);
+                if (dashboardStatistics != null)
+                    return Ok(new GenericResponse<DashboardStatisticsVM>(true, ResponseMessage.SUCCESSFUL, dashboardStatistics));
+
+                return BadRequest(new GenericResponse<string>(false, "Error occurred in processing", ResponseMessage.FAILED));
+
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+                return StatusCode(500, exceptionHandler);
+            }
+        }
     }
 }
