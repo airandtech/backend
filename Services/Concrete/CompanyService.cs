@@ -158,7 +158,8 @@ namespace AirandWebAPI.Services.Concrete
                 var riders = _unitOfWork.Riders.Find(x => x.CreatedBy.Equals(UserId)).ToList();
                 if (user != null){
 
-                    userCompanyRider.riders = _mapper.Map<IEnumerable<UserDto>>(riders);
+                    //userCompanyRider.riders = _mapper.Map<IEnumerable<UserDto>>(riders);
+                    userCompanyRider.riders = riders;
                 }
 
                 var managers = _unitOfWork.DispatchManagers.Find( x=> x.CompanyId.Equals(company.Id)).ToList();
