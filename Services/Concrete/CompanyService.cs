@@ -154,11 +154,11 @@ namespace AirandWebAPI.Services.Concrete
                 if (company != null)
                     userCompanyRider.company = company;
 
-                //var riders = _unitOfWork.Users.Find(x => x.CreatedBy.Equals(UserId) && x.Role.Equals(Role.Rider)).ToList();
-                var riders = _unitOfWork.Riders.Find(x => x.CreatedBy.Equals(UserId)).ToList();
+                // var riders = _unitOfWork.Users.Find(x => x.CreatedBy.Equals(UserId) && x.Role.Equals(Role.Rider)).ToList();
+                // var riders = _unitOfWork.Riders.Find(x => x.CreatedBy.Equals(UserId)).ToList();
+                var riders = _unitOfWork.Riders.GetAllRidersWithUsers().Where(x => x.CreatedBy.Equals(UserId)).ToList();
                 if (user != null){
-
-                    //userCompanyRider.riders = _mapper.Map<IEnumerable<UserDto>>(riders);
+                    // userCompanyRider.riders = _mapper.Map<IEnumerable<UserDto>>(riders);
                     userCompanyRider.riders = riders;
                 }
 
