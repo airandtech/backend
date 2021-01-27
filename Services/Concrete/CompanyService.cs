@@ -119,7 +119,7 @@ namespace AirandWebAPI.Services.Concrete
             var existingCompany = _unitOfWork.Companies.SingleOrDefault(x => x.UserId.Equals(UserId));
             if(existingCompany != null){
                 var company = this.updateCompany(existingCompany, model.company);
-                var user = this.updateManager(UserId, model.managerDetails);
+                var user = this.updateManager(existingCompany.Id, model.managerDetails);
                 return model;
             }else{
 
@@ -240,9 +240,9 @@ namespace AirandWebAPI.Services.Concrete
             return existingCompany;
         }
 
-        private DispatchManager updateManager(int userId, IEnumerable<ManagerDetails> managerDetails)
+        private DispatchManager updateManager(int companyId, IEnumerable<ManagerDetails> managerDetails)
         {
-            var existingManager = _unitOfWork.DispatchManagers.Get(userId);
+            var existingManager = _unitOfWork.DispatchManagers.Find(x => x.CompanyId.Equals(companyId)).FirstOrDefault();
             var manager = managerDetails.FirstOrDefault();
             if(!string.IsNullOrWhiteSpace(manager.Name)){
                 existingManager.Name = manager.Name;
