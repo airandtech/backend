@@ -119,7 +119,7 @@ namespace AirandWebAPI.Services.Concrete
             var existingCompany = _unitOfWork.Companies.SingleOrDefault(x => x.UserId.Equals(UserId));
             if(existingCompany != null){
                 var company = this.updateCompany(existingCompany, model.company);
-                var user = this.updateUser(UserId, model.user);
+                var user = this.updateManager(UserId, model.managerDetails);
                 return model;
             }else{
 
@@ -240,20 +240,21 @@ namespace AirandWebAPI.Services.Concrete
             return existingCompany;
         }
 
-        private User updateUser(int userId, UserDto user)
+        private DispatchManager updateManager(int userId, IEnumerable<ManagerDetails> managerDetails)
         {
-            var existingUser = _unitOfWork.Users.Get(userId);
-            if(!string.IsNullOrWhiteSpace(user.FirstName)){
-                existingUser.FirstName = user.FirstName;
+            var existingManager = _unitOfWork.DispatchManagers.Get(userId);
+            var manager = managerDetails.FirstOrDefault();
+            if(!string.IsNullOrWhiteSpace(manager.Name)){
+                existingManager.Name = manager.Name;
             }
-            if(!string.IsNullOrWhiteSpace(user.LastName)){
-                existingUser.LastName = user.LastName;
+            if(!string.IsNullOrWhiteSpace(manager.Email)){
+                existingManager.Email = manager.Email;
             }
-            if(!string.IsNullOrWhiteSpace(user.Phone)){
-                existingUser.Phone = user.Phone;
+            if(!string.IsNullOrWhiteSpace(manager.Phone)){
+                existingManager.Phone = manager.Phone;
             }
             var resp =_unitOfWork.Complete();
-            return existingUser;
+            return existingManager;
         }
 
     }

@@ -175,21 +175,19 @@ namespace AirandWebAPI.Controllers
                 ValidationInfo companyValidationInfo = _createCompanyValidation.Validate(companyModel);
                 ValidationInfo dispatchValidationInfo = _addDispatchManagerValidation.Validate(dispatchModel);
 
-                if (riderValidationInfo.isValid() && companyValidationInfo.isValid() && dispatchValidationInfo.isValid())
-                {
-                    CompanyWithDetailsVM companyWithDetailsVM = await _companyService.CreateCompanyWithDetails(model, userId);
-                    if (companyWithDetailsVM != null)
-                        return Ok(new GenericResponse<CompanyWithDetailsVM>(true, "Company added successfully !!!", companyWithDetailsVM));
-
-                    return BadRequest(new GenericResponse<string>(false, "Error occurred in processing", ResponseMessage.FAILED));
-                }
-                else
+                if (!riderValidationInfo.isValid() || !companyValidationInfo.isValid() || !dispatchValidationInfo.isValid())
                 {
                     ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.FAILED,
                     $" {riderValidationInfo.getConcatInvalidationNarrations()} - {companyValidationInfo.getConcatInvalidationNarrations()} - {dispatchValidationInfo.getConcatInvalidationNarrations()}"
                     );
                     return BadRequest(errorResponse);
                 }
+                CompanyWithDetailsVM companyWithDetailsVM = await _companyService.CreateCompanyWithDetails(model, userId);
+                if (companyWithDetailsVM != null)
+                    return Ok(new GenericResponse<CompanyWithDetailsVM>(true, "Company added successfully !!!", companyWithDetailsVM));
+
+                return BadRequest(new GenericResponse<string>(false, "Error occurred in processing", ResponseMessage.FAILED));
+
             }
             catch (Exception ex)
             {
@@ -205,7 +203,6 @@ namespace AirandWebAPI.Controllers
             {
                 var user = (User)HttpContext.Items["User"];
                 int userId = user.Id;
-
 
                 UserCompanyRider userCompanyRider = _companyService.GetCompanyDetails(userId);
                 if (userCompanyRider != null)
