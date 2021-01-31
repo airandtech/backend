@@ -225,10 +225,12 @@ namespace AirandWebAPI.Services.Concrete
             }
             return false;
         }
-        private async Task sendMailToCustomer(string requestorEmail, List<Order> orders)
+        private async Task sendMailToCustomer(string requestorEmail, List<Order> orders, int riderId)
         {
             try
             {
+                string riderPhone = "N/A";
+                string managerPhone = "N/A";
                 string paymentLink = getPaymentLink(orders);
 
                 // IWebHostEnvironment env
@@ -244,18 +246,28 @@ namespace AirandWebAPI.Services.Concrete
                 {
                     amount += item.Cost;
                 }
+                var rider = _unitOfWork.Riders.Get(riderId);
+                if(rider != null){
+                    var riderUser = _unitOfWork.Users.Get(rider.UserId);
+                    riderPhone = riderUser.Phone;
+                    var company = _unitOfWork.Companies.SingleOrDefault(x => x.UserId.Equals(riderUser.CreatedBy));
+                    var manager = _unitOfWork.DispatchManagers.SingleOrDefault(x => x.CompanyId.Equals(company.Id));
+                    managerPhone = manager.Phone;
+                } 
+
+                
 
                 using (StreamReader sr = new StreamReader(pathToEmailTemplate + "/DispatchOrder.html"))
                 {
                     var line = await sr.ReadToEndAsync();
 
-                    var formattedEmail = string.Format(line, "Dispatch Request", amount.ToString("#,###.00"), paymentLink);
+                    var formattedEmail = string.Format(line, "Dispatch Request", amount.ToString("#,###.00"), paymentLink, managerPhone, riderPhone);
 
                     await _mailer.SendMailAsync(requestorEmail, requestorEmail, "Airand: Dispatch Request", formattedEmail);
                 }
 
                 //send sms notification
-                string message = $"Airand: Your order has been accepted. See payment link {paymentLink}";
+                string message = $"Airand: Your order has been accepted. See payment link {paymentLink}. For Enquiries contact Rider on {riderPhone} or his manager on {managerPhone}";
                 int pickupAddressId = orders.FirstOrDefault().PickUpAddressId;
                 var user = _unitOfWork.DispatchInfo.Get(pickupAddressId);//refactor this 
 
