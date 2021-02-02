@@ -54,7 +54,7 @@ namespace WebApi.Controllers
                     AuthenticateResponse response = await _userService.Create(user, model.Password);
                     if(response!= null)
                         return Ok(response);
-                    ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.REGISTRATION_FAILED, "User already exists");
+                    ErrorResponse errorResponse = new ErrorResponse(false, "User already exists", ResponseMessage.REGISTRATION_FAILED);
                     return BadRequest(errorResponse);  
                 }
                 else

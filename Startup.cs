@@ -19,6 +19,7 @@ using AirandWebAPI.Models.Dispatch;
 using Microsoft.Extensions.FileProviders;
 using System.IO;
 using AirandWebAPI.Models.Company;
+using AirandWebAPI.Models;
 
 namespace AirandWebAPI
 {
@@ -71,6 +72,7 @@ namespace AirandWebAPI
             services.AddScoped<IValidation<CreateCompanyVM>, CreateCompanyValidation>();
             services.AddScoped<IValidation<AddDispatchManagerVM>, AddDispatchManagerValidation>();
             services.AddScoped<IValidation<AddRidersVM>, AddRidersValidation>();
+            services.AddScoped<IValidation<EmailVM>, SendEmailValidation>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

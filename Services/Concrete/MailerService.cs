@@ -40,7 +40,7 @@ namespace AirandWebAPI.Services
                    }
                   }},
                  {"Subject", subject},
-                 {"TextPart", "Greetings from Mailjet!"},
+                 {"TextPart", "Greetings from Airand Technologies!"},
                  {"HTMLPart", HtmlMessage}
                  }
                 });

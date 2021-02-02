@@ -147,7 +147,7 @@ namespace AirandWebAPI.Services.Concrete
                 await _unitOfWork.Complete();
 
                 //send email to customer that order has been picked up
-                await sendMailToCustomer(requestorEmail, orders);
+                await sendMailToCustomer(requestorEmail, orders, riderId);
                 return true;
             }
             return false;
