@@ -24,7 +24,7 @@ namespace AirandWebAPI.Services.Concrete
     {
         private int take = 10;
         private int skip = 0;
-        private readonly string notificationBaseUrl = "https://airandpartners.azurewebsites.net/";
+        private readonly string notificationBaseUrl = "https://partners.airand.net/";
         private IUnitOfWork _unitOfWork;
         private INotification _notification;
         private IMailer _mailer;

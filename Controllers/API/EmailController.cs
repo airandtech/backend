@@ -1,10 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using AirandWebAPI.Services.Contract;
-using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
-using AirandWebAPI.Core.Domain;
-using AirandWebAPI.Models.Company;
 using AirandWebAPI.Services;
 using AirandWebAPI.Helpers;
 using AirandWebAPI.Models;
