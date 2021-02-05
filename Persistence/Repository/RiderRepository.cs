@@ -24,7 +24,7 @@ namespace AirandWebAPI.Persistence.Repositories
         public IEnumerable<Rider> GetAllActiveRidersWithUsers()
         {
             return DataContext.Riders
-                .Where(x => x.LastModified > DateTime.Now.AddMinutes(15))
+                .Where(x => x.LastModified > DateTime.UtcNow.AddHours(1).AddMinutes(15))
                 .Include(c => c.User)
                 .ToList();
         }
