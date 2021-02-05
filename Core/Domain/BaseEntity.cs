@@ -7,6 +7,6 @@ namespace AirandWebAPI.Core.Domain
     {
         public int Id { get; set; }
         public DateTime DateCreated {get;set;}
-        public DateTime LastModified {get;set;} = DateTime.UtcNow.AddHours(1);
+        public DateTime LastModified {get;set;} = DateTime.Now.AddHours(1);
     }
 }
