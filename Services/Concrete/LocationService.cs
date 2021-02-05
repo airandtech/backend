@@ -27,7 +27,7 @@ namespace AirandWebAPI.Services.Concrete
             if(rider != null){
                 rider.Latitude = model.latitude;
                 rider.Longitude = model.longitude;
-                rider.LastModified = DateTime.Now;
+                rider.LastModified = DateTime.UtcNow.AddHours(1);
                 await _unitOfWork.Complete();
                 return true;
             }
