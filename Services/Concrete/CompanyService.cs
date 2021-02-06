@@ -94,8 +94,8 @@ namespace AirandWebAPI.Services.Concrete
                     user.Role = Role.Rider;
                     AuthenticateResponse authResponse = await _userService.Create(user, item.Phone);
 
-                    var existingRider = _unitOfWork.Riders.SingleOrDefault(x => x.UserId.Equals(authResponse.Id));
-                    if (existingRider != null)
+                    var existingRider = _unitOfWork.Riders.Find(x => x.UserId.Equals(authResponse.Id));
+                    if (existingRider != null || existingRider.Count() > 0)
                         continue;
 
                     rider = new Rider();
@@ -214,9 +214,7 @@ namespace AirandWebAPI.Services.Concrete
             return dashboardStatistics;
         }
         private Company updateCompany( Company existingCompany, CreateCompanyVM update){
-            //not good practice
-            //var existingCompany = _unitOfWork.Companies.SingleOrDefault(x => x.UserId.Equals(UserId));
-
+    
             if(!string.IsNullOrWhiteSpace(update.AccountName)){
                 existingCompany.AccountName = update.AccountName;
             }
