@@ -10,7 +10,7 @@ namespace AirandWebAPI.Persistence.Repositories
 {
     public class RiderRepository : Repository<Rider>, IRiderRepository
     {
-        public RiderRepository(DataContext context) 
+        public RiderRepository(DataContext context)
             : base(context)
         {
         }
@@ -23,8 +23,9 @@ namespace AirandWebAPI.Persistence.Repositories
         }
         public IEnumerable<Rider> GetAllActiveRidersWithUsers()
         {
+            //DateTime next15mins = DateTime.UtcNow.AddHours(1).AddMinutes(15);
             return DataContext.Riders
-                .Where(x => x.LastModified > DateTime.UtcNow.AddHours(1).AddMinutes(15))
+                .Where(x => x.LastModified.AddMinutes(15) > DateTime.Now.AddHours(1))
                 .Include(c => c.User)
                 .ToList();
         }
