@@ -231,7 +231,7 @@ namespace AirandWebAPI.Services.Concrete
         {
             var dispatchDetails = _unitOfWork.DispatchInfo.GetAll();
 
-            var orders = _unitOfWork.Orders.Find(x => x.CompanyOwnerId.Equals(userId))
+            var orders = _unitOfWork.Orders.Find(x => x.CompanyOwnerId.Equals(userId.ToString()))
                                     .OrderByDescending(x => x.DateCreated)
                                     .Take(limit)
                                     .Skip(offset)
