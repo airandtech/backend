@@ -21,16 +21,19 @@ namespace AirandWebAPI.Services.Concrete
         private IUnitOfWork _unitOfWork;
         private readonly AppSettings _appSettings;
         private IUserService _userService;
+        private IOrderService _orderService;
         private IMapper _mapper;
 
         public CompanyService(IUnitOfWork unitOfWork,
         IOptions<AppSettings> appSettings,
         IUserService userService,
+        IOrderService orderService,
         IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _appSettings = appSettings.Value;
             _userService = userService;
+            _orderService = orderService;
             _mapper = mapper;
         }
 
@@ -117,11 +120,14 @@ namespace AirandWebAPI.Services.Concrete
             CompanyWithDetailsVM companyWithDetails = null;
 
             var existingCompany = _unitOfWork.Companies.SingleOrDefault(x => x.UserId.Equals(UserId));
-            if(existingCompany != null){
+            if (existingCompany != null)
+            {
                 var company = this.updateCompany(existingCompany, model.company);
                 var user = this.updateManager(existingCompany.Id, model.managerDetails);
                 return model;
-            }else{
+            }
+            else
+            {
 
                 var company = _mapper.Map<Company>(model.company);
                 company = await this.Create(company, UserId);
@@ -157,12 +163,13 @@ namespace AirandWebAPI.Services.Concrete
                 // var riders = _unitOfWork.Users.Find(x => x.CreatedBy.Equals(UserId) && x.Role.Equals(Role.Rider)).ToList();
                 // var riders = _unitOfWork.Riders.Find(x => x.CreatedBy.Equals(UserId)).ToList();
                 var riders = _unitOfWork.Riders.GetAllRidersWithUsers().Where(x => x.CreatedBy.Equals(UserId)).ToList();
-                if (user != null){
+                if (user != null)
+                {
                     // userCompanyRider.riders = _mapper.Map<IEnumerable<UserDto>>(riders);
                     userCompanyRider.riders = riders;
                 }
 
-                var managers = _unitOfWork.DispatchManagers.Find( x=> x.CompanyId.Equals(company.Id)).ToList();
+                var managers = _unitOfWork.DispatchManagers.Find(x => x.CompanyId.Equals(company.Id)).ToList();
                 var managerDto = _mapper.Map<IEnumerable<DispatchManagerDto>>(managers);
                 userCompanyRider.managers = managerDto;
             }
@@ -173,17 +180,19 @@ namespace AirandWebAPI.Services.Concrete
         public async Task<bool> DeleteRider(int riderId)
         {
             Rider rider = _unitOfWork.Riders.Get(riderId);
-            if(rider != null){
+            if (rider != null)
+            {
                 int userId = rider.UserId;
                 User user = _unitOfWork.Users.Get(userId);
-                if(user != null){
+                if (user != null)
+                {
                     _unitOfWork.Riders.Remove(rider);
                     _unitOfWork.Users.Remove(user);
                     await _unitOfWork.Complete();
                     return true;
                 }
             }
-           
+
             return false;
         }
         public DashboardStatisticsVM GetDashboardStatistics(int userId)
@@ -195,9 +204,10 @@ namespace AirandWebAPI.Services.Concrete
 
             dashboardStatistics.riders = ridersWithUsers;
 
-            if(allOrders.Any() && ridersId.Count() > 0){
+            if (allOrders.Any() && ridersId.Count() > 0)
+            {
                 var orders = allOrders.Where(x => ((IList<int>)ridersId).Contains(int.Parse(x.RiderId))).ToList();
-            
+
                 // dashboardStatistics.riders = ridersWithUsers;
                 dashboardStatistics.todayTransactions = orders.Where(x => x.LastModified.Date.Equals(DateTime.Now.Date)).ToList();
                 dashboardStatistics.todayTransactionsVolume = dashboardStatistics.todayTransactions.Count();
@@ -208,29 +218,37 @@ namespace AirandWebAPI.Services.Concrete
                 var successfulTransactions = orders.Where(x => x.PaymentStatus.Equals(1));
                 dashboardStatistics.totalSuccessfulVolume = successfulTransactions.Count();
                 dashboardStatistics.totalSuccessValue = successfulTransactions.Sum(x => x.Cost);
-                
+                dashboardStatistics.orders = _orderService.GetOrdersForCompany(10, 0, userId);
+
             }
 
             return dashboardStatistics;
         }
-        private Company updateCompany( Company existingCompany, CreateCompanyVM update){
-    
-            if(!string.IsNullOrWhiteSpace(update.AccountName)){
+        private Company updateCompany(Company existingCompany, CreateCompanyVM update)
+        {
+
+            if (!string.IsNullOrWhiteSpace(update.AccountName))
+            {
                 existingCompany.AccountName = update.AccountName;
             }
-            if(!string.IsNullOrWhiteSpace(update.AccountNumber)){
+            if (!string.IsNullOrWhiteSpace(update.AccountNumber))
+            {
                 existingCompany.AccountNumber = update.AccountNumber;
             }
-            if(!string.IsNullOrWhiteSpace(update.CompanyAddress)){
+            if (!string.IsNullOrWhiteSpace(update.CompanyAddress))
+            {
                 existingCompany.CompanyAddress = update.CompanyAddress;
             }
-            if(!string.IsNullOrWhiteSpace(update.BankName)){
+            if (!string.IsNullOrWhiteSpace(update.BankName))
+            {
                 existingCompany.BankName = update.BankName;
             }
-            if(!string.IsNullOrWhiteSpace(update.CompanyName)){
+            if (!string.IsNullOrWhiteSpace(update.CompanyName))
+            {
                 existingCompany.CompanyName = update.CompanyName;
             }
-            if(!string.IsNullOrWhiteSpace(update.OfficeArea)){
+            if (!string.IsNullOrWhiteSpace(update.OfficeArea))
+            {
                 existingCompany.OfficeArea = update.OfficeArea;
             }
 
@@ -242,16 +260,19 @@ namespace AirandWebAPI.Services.Concrete
         {
             var existingManager = _unitOfWork.DispatchManagers.Find(x => x.CompanyId.Equals(companyId)).FirstOrDefault();
             var manager = managerDetails.FirstOrDefault();
-            if(!string.IsNullOrWhiteSpace(manager.Name)){
+            if (!string.IsNullOrWhiteSpace(manager.Name))
+            {
                 existingManager.Name = manager.Name;
             }
-            if(!string.IsNullOrWhiteSpace(manager.Email)){
+            if (!string.IsNullOrWhiteSpace(manager.Email))
+            {
                 existingManager.Email = manager.Email;
             }
-            if(!string.IsNullOrWhiteSpace(manager.Phone)){
+            if (!string.IsNullOrWhiteSpace(manager.Phone))
+            {
                 existingManager.Phone = manager.Phone;
             }
-            var resp =_unitOfWork.Complete();
+            var resp = _unitOfWork.Complete();
             return existingManager;
         }
 

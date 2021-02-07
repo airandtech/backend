@@ -14,5 +14,6 @@ namespace AirandWebAPI.Models.Company
         public IEnumerable<Order> todayTransactions {get;set;} = new List<Order>();
         public IEnumerable<Order> totalTransactions {get;set;} = new List<Order>();
         public IEnumerable<Rider> riders {get;set;}
+        public IEnumerable<Order> orders {get;set;}
     }
 }

@@ -19,6 +19,7 @@ namespace AirandWebAPI.Services.Contract
         RiderOrders GetOrders(int userId);
         bool ChangeStatus(ChangeStatusVM model);
         UserOrdersVM GetOrder(string transactionId);
+        List<Order> GetOrdersForCompany(int limit, int offset, int userId);
     }
 
 }

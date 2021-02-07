@@ -109,7 +109,7 @@ namespace AirandWebAPI.Controllers
             {
                 if (!string.IsNullOrWhiteSpace(transactionId) && !string.IsNullOrWhiteSpace(requestorEmail) && !string.IsNullOrWhiteSpace(riderId))
                 {
-                    
+
                     bool response = await _orderService.Accept(transactionId, requestorEmail, int.Parse(riderId));
                     if (response)
                         return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, ResponseMessage.SUCCESSFUL));
@@ -207,6 +207,29 @@ namespace AirandWebAPI.Controllers
             }
         }
 
+        [HttpGet("orders/company")]
+        public IActionResult GetOrdersForCompany(int limit = 100, int offset = 0)
+        {
+            try
+            {
+                var user = (User)HttpContext.Items["User"];
+                int userId = user.Id;
+
+                List<Order> orders = _orderService.GetOrdersForCompany(limit, offset, userId);
+                if (orders != null && orders.Count > 0)
+                    return Ok(new GenericResponse<List<Order>>(true, ResponseMessage.SUCCESSFUL, orders));
+                
+                return Ok(new GenericResponse<Order>(false, ResponseMessage.NO_RESULTS, null));
+
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+                return StatusCode(500, exceptionHandler);
+
+            }
+        }
+
         [HttpPost("orders/status/change")]
         public IActionResult ChangeStatus([FromBody] ChangeStatusVM model)
         {
@@ -246,7 +269,7 @@ namespace AirandWebAPI.Controllers
         {
             try
             {
-               
+
 
                 if (!string.IsNullOrWhiteSpace(id))
                 {

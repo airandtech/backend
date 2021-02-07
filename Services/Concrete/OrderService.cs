@@ -124,6 +124,7 @@ namespace AirandWebAPI.Services.Concrete
                     var distanceAndDuration = response.routes[0].legs[0];
                     var order = _unitOfWork.Orders.Get(item.Id);
                     order.RiderId = riderId.ToString();
+                    order.CompanyOwnerId = _unitOfWork.Riders.Get(riderId).CreatedBy.ToString();
 
                     //get distance and duration and save
                     order.Distance = distanceAndDuration.distance.text;
@@ -225,6 +226,22 @@ namespace AirandWebAPI.Services.Concrete
             }
             return false;
         }
+
+        public List<Order> GetOrdersForCompany(int limit, int offset, int userId)
+        {
+            var dispatchDetails = _unitOfWork.DispatchInfo.GetAll();
+
+            var orders = _unitOfWork.Orders.Find(x => x.CompanyOwnerId.Equals(userId))
+                                    .OrderByDescending(x => x.DateCreated)
+                                    .Take(limit)
+                                    .Skip(offset)
+                                    .ToList();
+
+
+            var orderWithDetails = getOrderWithDetails(orders, dispatchDetails);
+            return orderWithDetails;
+        }
+
         private async Task sendMailToCustomer(string requestorEmail, List<Order> orders, int riderId)
         {
             try
@@ -247,15 +264,16 @@ namespace AirandWebAPI.Services.Concrete
                     amount += item.Cost;
                 }
                 var rider = _unitOfWork.Riders.Get(riderId);
-                if(rider != null){
+                if (rider != null)
+                {
                     var riderUser = _unitOfWork.Users.Get(rider.UserId);
                     riderPhone = riderUser.Phone;
                     var company = _unitOfWork.Companies.SingleOrDefault(x => x.UserId.Equals(riderUser.CreatedBy));
                     var manager = _unitOfWork.DispatchManagers.SingleOrDefault(x => x.CompanyId.Equals(company.Id));
                     managerPhone = manager.Phone;
-                } 
+                }
 
-                
+
 
                 using (StreamReader sr = new StreamReader(pathToEmailTemplate + "/DispatchOrder.html"))
                 {
@@ -545,5 +563,6 @@ namespace AirandWebAPI.Services.Concrete
             }
 
         }
+
     }
 }
