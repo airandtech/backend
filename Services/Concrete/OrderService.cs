@@ -124,7 +124,7 @@ namespace AirandWebAPI.Services.Concrete
                     var distanceAndDuration = response.routes[0].legs[0];
                     var order = _unitOfWork.Orders.Get(item.Id);
                     order.RiderId = riderId.ToString();
-                    order.CompanyOwnerId = _unitOfWork.Riders.Get(riderId).CreatedBy.ToString();
+                    order.CompanyOwnerId = _unitOfWork.Riders.Find(x => x.UserId.Equals(riderId)).FirstOrDefault().CreatedBy.ToString();
 
                     //get distance and duration and save
                     order.Distance = distanceAndDuration.distance.text;
