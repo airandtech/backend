@@ -13,7 +13,7 @@ namespace AirandWebAPI.Models.Company
         public decimal totalSuccessValue {get;set;}
         public IEnumerable<Order> todayTransactions {get;set;} = new List<Order>();
         public IEnumerable<Order> totalTransactions {get;set;} = new List<Order>();
-        public IEnumerable<Rider> riders {get;set;}
-        public IEnumerable<Order> orders {get;set;}
+        public IEnumerable<Rider> riders {get;set;} = new List<Rider>();
+        public IEnumerable<Order> orders {get;set;} = new List<Order>();
     }
 }
