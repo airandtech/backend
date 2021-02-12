@@ -239,6 +239,7 @@ namespace AirandWebAPI.Services.Concrete
 
 
             var orderWithDetails = getOrderWithDetails(orders, dispatchDetails);
+            if(orderWithDetails == null) return new List<Order>();
             return orderWithDetails;
         }
 
