@@ -12,12 +12,19 @@ using AirandWebAPI.Models.Auth;
 using AutoMapper;
 using AirandWebAPI.Models.DTOs;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using AirandWebAPI.Models;
+using System.Text;
+using System.Net;
+using Newtonsoft.Json;
 
 namespace AirandWebAPI.Services.Concrete
 {
 
     public class CompanyService : ICompanyService
     {
+        private readonly string apiKey = "FLWSECK-891e490e3196c2de0debb041ed1eb6dd-X";
         private IUnitOfWork _unitOfWork;
         private readonly AppSettings _appSettings;
         private IUserService _userService;
@@ -224,6 +231,35 @@ namespace AirandWebAPI.Services.Concrete
 
             return dashboardStatistics;
         }
+
+        public async Task<ResolveAccountResponseVM> ResolveAccount(ResolveAccountVM model)
+        {
+            HttpClient client = new HttpClient();
+            client.BaseAddress = new Uri("https://api.flutterwave.com/");
+            client.DefaultRequestHeaders.Accept.Clear();
+            client.DefaultRequestHeaders.Accept.Add( new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+
+            ResolveAccountRequest jsonObject = new ResolveAccountRequest(model.AccountNumber, model.BankCode);
+
+            string json = JsonConvert.SerializeObject(jsonObject, Formatting.Indented);
+
+            var body = new StringContent(json, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await client.PostAsJsonAsync("v3/accounts/resolve", jsonObject);
+            //response.EnsureSuccessStatusCode();
+
+            if(response.StatusCode == HttpStatusCode.OK){
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                ResolveAccountRootResponse resolveResponse = JsonConvert.DeserializeObject<ResolveAccountRootResponse>(responseBody);
+                if(resolveResponse.status.Equals("success")){
+                    return resolveResponse.data;
+                }
+            }
+            
+            return null;
+        }
         private Company updateCompany(Company existingCompany, CreateCompanyVM update)
         {
 
@@ -255,7 +291,6 @@ namespace AirandWebAPI.Services.Concrete
             var resp = _unitOfWork.Complete();
             return existingCompany;
         }
-
         private DispatchManager updateManager(int companyId, IEnumerable<ManagerDetails> managerDetails)
         {
             var existingManager = _unitOfWork.DispatchManagers.Find(x => x.CompanyId.Equals(companyId)).FirstOrDefault();

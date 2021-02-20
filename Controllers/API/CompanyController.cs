@@ -239,5 +239,25 @@ namespace AirandWebAPI.Controllers
                 return StatusCode(500, exceptionHandler);
             }
         }
+    
+        [HttpPost("accounts/resolve")]
+        public async Task<IActionResult> ResolveAccount([FromBody] ResolveAccountVM model)
+        {
+            try
+            {
+
+                ResolveAccountResponseVM responseVM = await _companyService.ResolveAccount(model);
+                if (responseVM != null)
+                    return Ok(new GenericResponse<ResolveAccountResponseVM>(true, ResponseMessage.SUCCESSFUL, responseVM));
+
+                return BadRequest(new GenericResponse<string>(false, "Failed to resolve account number", ResponseMessage.FAILED));
+
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+                return StatusCode(500, exceptionHandler);
+            }
+        }
     }
 }

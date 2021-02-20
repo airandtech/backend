@@ -17,6 +17,7 @@ namespace AirandWebAPI.Services.Contract
         UserCompanyRider GetCompanyDetails(int UserId);
         Task<bool> DeleteRider(int riderId);
         DashboardStatisticsVM GetDashboardStatistics(int userId);
+        Task<ResolveAccountResponseVM> ResolveAccount(ResolveAccountVM model);
     }
 
 }
