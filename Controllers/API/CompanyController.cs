@@ -248,7 +248,7 @@ namespace AirandWebAPI.Controllers
 
                 ResolveAccountResponseVM responseVM = await _companyService.ResolveAccount(model);
                 if (responseVM != null)
-                    return Ok(new GenericResponse<ResolveAccountResponseVM>(true, ResponseMessage.SUCCESSFUL, responseVM));
+                    return Ok(new GenericResponse<ResolveAccountResponseVM>(true, "Account details fetched", responseVM));
 
                 return BadRequest(new GenericResponse<string>(false, "Failed to resolve account number", ResponseMessage.FAILED));
 
