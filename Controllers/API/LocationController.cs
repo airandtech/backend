@@ -43,7 +43,7 @@ namespace AirandWebAPI.Controllers
                     var user = (User)HttpContext.Items["User"];
                     int userId = user.Id;
                     bool response = await _locationService.UpdateDriverLocation(model, userId);
-                    if(response)
+                    if (response)
                         return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, "Successful"));
                     return Ok(new GenericResponse<string>(false, ResponseMessage.FAILED, "Failed"));
                 }
@@ -60,5 +60,33 @@ namespace AirandWebAPI.Controllers
 
             }
         }
+
+        [AllowAnonymous]
+        [HttpGet("order/track/{orderId}")]
+        public async Task<IActionResult> TrackOrder(string orderId)
+        {
+            try
+            {
+                if (!String.IsNullOrWhiteSpace(orderId))
+                {
+                    GenericResponse<OrderTrackingResponse> response =  _locationService.TrackOrder(orderId);
+                    if (response.status)
+                        return Ok(new GenericResponse<OrderTrackingResponse>(true, ResponseMessage.SUCCESSFUL, response.data));
+                    return Ok(new GenericResponse<string>(false, ResponseMessage.FAILED, "Failed"));
+                }
+                else
+                {
+                    ErrorResponse errorResponse = new ErrorResponse(false, "Invalid Order Id", ResponseMessage.BAD_REQUEST);
+                    return BadRequest(errorResponse);
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+                return StatusCode(500, exceptionHandler);
+            }
+        }
+
+
     }
 }
