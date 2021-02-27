@@ -22,7 +22,7 @@ namespace AirandWebAPI.Core.Domain
         public string OrderIds { get; set; }
         public string ResponseBody { get; set; }
         public string AirandTxnId {get; set; }
-        public int TransactionId { get; set; }
+        public string TransactionId { get; set; }
         public string CustomerEmail { get; set; }
         public string Status { get; set; }
     }

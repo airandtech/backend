@@ -27,7 +27,15 @@ namespace AirandWebAPI.Persistence.Repositories
                 .ToList();
         }
 
-          // public IEnumerable<Course> GetCoursesWithAuthors(int pageIndex, int pageSize = 10)
+        public Order GetOrderWithLocation(int id)
+        {
+            return DataContext.Orders
+                .Include(c => c.Delivery)
+                .Include(c => c.PickUp)
+                .FirstOrDefault(x => x.Id.Equals(id));
+        }
+
+        // public IEnumerable<Course> GetCoursesWithAuthors(int pageIndex, int pageSize = 10)
         // {
         //     return PlutoContext.Courses
         //         .Include(c => c.Author)

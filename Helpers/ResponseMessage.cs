@@ -15,6 +15,7 @@ namespace AirandWebAPI.Helpers{
         public const string RESERVATION_SUCCESSFUL = "Reservation Successfull !!!";
         public const string PROCESSING_PAYMENT = "Payment is being processed";
         public const string PROCESSING_WITH_ERRORS = "Payment processed with errors";
+        public const string BAD_REQUEST = "Bad Request";
 
     }  
 

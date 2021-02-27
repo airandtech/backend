@@ -56,46 +56,12 @@ namespace AirandWebAPI.Services.Concrete
         public async Task<DispatchResponse> Order(RideOrderRequest model)
         {
 
-            Order order;
-            decimal totalAmount = 0;
-            List<Order> orders = new List<Order>();
-            DispatchRequestInfo pickupDetails;
-            string transactionId = Guid.NewGuid().ToString();
-
-
-            pickupDetails = new DispatchRequestInfo(model.PickUp);
-            _unitOfWork.DispatchInfo.Add(pickupDetails);
-            await _unitOfWork.Complete();
-            foreach (var item in model.Delivery)
-            {
-
-                order = new Order();
-                var deliverDetails = new DispatchRequestInfo(item);
-
-                order.PickUpAddressId = pickupDetails.Id;
-
-                _unitOfWork.DispatchInfo.Add(deliverDetails);
-                await _unitOfWork.Complete();
-                order.DeliveryAddressId = deliverDetails.Id;
-
-                order.Cost = PriceCalculator.Process(model.PickUp.RegionCode, item.RegionCode); ///refactor
-                totalAmount += order.Cost;
-                order.Status = OrderStatus.Created;
-                order.DateCreated = DateTime.UtcNow + TimeSpan.FromHours(1);
-                order.RequestorIdentifier = pickupDetails.Email;
-                order.TransactionId = transactionId;
-                order.PaymentStatus = 0;
-                _unitOfWork.Orders.Add(order);
-                await _unitOfWork.Complete();
-                orders.Add(order);
-
-                //await Task.WhenAll(dispatchDetailsTask, dispatchInfoTask, ordersTask);
-            }
+            (decimal totalAmount, string transactionId, List<Order> orders) = await saveOrders(model);
             //var managerTask = sendToManager(model, transactionId);
             var dispatchTask = processDispatch(model, transactionId);
 
             await Task.WhenAll(dispatchTask);
-            return new DispatchResponse(model.PickUp.Name, totalAmount, this.getPaymentLink(orders), transactionId);
+            return new DispatchResponse(model.PickUp.Name, totalAmount, "", transactionId);
         }
 
         public async Task<bool> Accept(string transactionId, string requestorEmail, int riderId)
@@ -165,7 +131,7 @@ namespace AirandWebAPI.Services.Concrete
                 .FirstOrDefault();
             if (invoice != null)
             {
-                invoice.TransactionId = response.data.id;
+                invoice.TransactionId = response.data.id.ToString();
                 invoice.AmountPaid = (decimal)(response.data.amount);
                 invoice.Status = OrderStatus.Completed;
                 invoice.ResponseBody = JsonConvert.SerializeObject(response);
@@ -239,10 +205,58 @@ namespace AirandWebAPI.Services.Concrete
 
 
             var orderWithDetails = getOrderWithDetails(orders, dispatchDetails);
-            if(orderWithDetails == null) return new List<Order>();
+            if (orderWithDetails == null) return new List<Order>();
             return orderWithDetails;
         }
 
+        public async Task<DispatchResponse> CompanyOrder(RideOrderRequest model)
+        {
+            (decimal totalAmount, string transactionId, List<Order> orders) = await saveOrders(model);
+
+            Company company = _unitOfWork.Companies.Get(model.CompanyId);
+            if (company != null)
+            {
+                //send order to company directly
+                foreach (var item in orders)
+                {
+                    item.CompanyOwnerId = company.UserId.ToString();
+                    await _unitOfWork.Complete();
+                }
+
+                //notify the company
+                await sendNotificationToCompany(company.UserId);
+
+                //create invoice 
+                Invoice invoice = new Invoice(totalAmount, model.PickUp.Email, OrderStatus.Pending, transactionId);
+                invoice.DateCreated = DateTime.Now;
+
+                if (orders.Count == 1) invoice.OrderId = orders.FirstOrDefault().Id;
+                else{
+                    List<int> ids = orders.Select(x => x.Id).ToList();
+                    invoice.OrderIds = String.Join(',', ids);
+                    invoice.TransactionId = transactionId;
+                } 
+
+                _unitOfWork.Invoices.Add(invoice);
+                await _unitOfWork.Complete();
+
+                return new DispatchResponse(model.PickUp.Name, totalAmount, "", transactionId);
+            }
+            return null;
+        }
+       
+        public async Task<bool> AssingOrderToRider(string orderId, string riderId)
+        {
+            var order = _unitOfWork.Orders.Get(int.Parse(orderId));
+            if(order != null){
+                order.RiderId = riderId;
+                await _unitOfWork.Complete();
+                await sendMailToCustomer(order.RequestorIdentifier, new List<Order>{order},int.Parse(orderId));
+                return true;
+            }
+            return false;
+        }
+       
         private async Task sendMailToCustomer(string requestorEmail, List<Order> orders, int riderId)
         {
             try
@@ -250,11 +264,6 @@ namespace AirandWebAPI.Services.Concrete
                 string riderPhone = "N/A";
                 string managerPhone = "N/A";
                 string paymentLink = getPaymentLink(orders);
-
-                // IWebHostEnvironment env
-                // LocalResource localResource = RoleEnvironment.GetLocalResource("Resources");
-                // string[] paths = { localResource.RootPath, "EmailTemplate" };
-                // String pathToEmailTemplate = Path.Combine(paths);
 
                 var folderName = Path.Combine("Resources", "EmailTemplate");
                 var pathToEmailTemplate = Path.Combine(Directory.GetCurrentDirectory(), folderName);
@@ -563,6 +572,71 @@ namespace AirandWebAPI.Services.Concrete
                 await _smsService.SendAsync(smsBody);
             }
 
+        }
+
+        private async Task sendNotificationToCompany(int userId)
+        {
+            var user = _unitOfWork.Users.Get(userId);
+            if(user == null)  return;
+
+            string orderLink = "https://partners.airand.net/orders";
+
+            var folderName = Path.Combine("Resources", "EmailTemplate");
+            var pathToEmailTemplate = Path.Combine(Directory.GetCurrentDirectory(), folderName);
+
+
+            using (StreamReader sr = new StreamReader(pathToEmailTemplate + "/CompanyOrderNotification.html"))
+            {
+                var line = await sr.ReadToEndAsync();
+
+                var formattedEmail = string.Format(line, orderLink);
+
+                await _mailer.SendMailAsync(user.Username, user.FirstName, "Airand: Company Dispatch Request", formattedEmail);
+            }
+
+            //send sms notification
+            string message = $"Airand: Dispatch Request. Login to your dashboard to view details. {orderLink}";
+            SmsBody smsBody = new SmsBody("Airand", user.Phone, message);
+
+            await _smsService.SendAsync(smsBody);
+        }
+
+        private async Task<(decimal totalAmount, string transactionId, List<Order> saveOrders)> saveOrders(RideOrderRequest model)
+        {
+            Order order;
+            decimal totalAmount = 0;
+            List<Order> orders = new List<Order>();
+            DispatchRequestInfo pickupDetails;
+            string transactionId = Guid.NewGuid().ToString();
+
+
+            pickupDetails = new DispatchRequestInfo(model.PickUp);
+            _unitOfWork.DispatchInfo.Add(pickupDetails);
+            await _unitOfWork.Complete();
+            foreach (var item in model.Delivery)
+            {
+
+                order = new Order();
+                var deliverDetails = new DispatchRequestInfo(item);
+
+                order.PickUpAddressId = pickupDetails.Id;
+
+                _unitOfWork.DispatchInfo.Add(deliverDetails);
+                await _unitOfWork.Complete();
+                order.DeliveryAddressId = deliverDetails.Id;
+
+                order.Cost = PriceCalculator.Process(model.PickUp.RegionCode, item.RegionCode); ///refactor
+                totalAmount += order.Cost;
+                order.Status = OrderStatus.Created;
+                order.DateCreated = DateTime.UtcNow + TimeSpan.FromHours(1);
+                order.RequestorIdentifier = pickupDetails.Email;
+                order.TransactionId = transactionId;
+                order.PaymentStatus = (int)PaymentStatus.PAID;
+                _unitOfWork.Orders.Add(order);
+                await _unitOfWork.Complete();
+                orders.Add(order);
+            }
+            return (totalAmount, transactionId, orders);
         }
 
     }

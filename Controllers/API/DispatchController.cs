@@ -73,6 +73,34 @@ namespace AirandWebAPI.Controllers
             }
         }
 
+        [AllowAnonymous]
+        [HttpPost("order/company")]
+        public async Task<IActionResult> CompanyOrder([FromBody] RideOrderRequest model)
+        {
+            try
+            {
+                ValidationInfo validationInfo = _dispatchRequestValidation.Validate(model);
+                if (validationInfo.isValid())
+                {
+                    DispatchResponse response = await _orderService.CompanyOrder(model);
+                    if (response != null)
+                        return Ok(new GenericResponse<DispatchResponse>(true, ResponseMessage.SUCCESSFUL, response));
+                    return Ok(new GenericResponse<DispatchResponse>(false, ResponseMessage.FAILED, response));
+                }
+                else
+                {
+                    ErrorResponse errorResponse = new ErrorResponse(false, ResponseMessage.FAILED, validationInfo.getConcatInvalidationNarrations());
+                    return BadRequest(errorResponse);
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+                return StatusCode(500, exceptionHandler);
+
+            }
+        }
+
         [HttpGet("accept/{transactionId}/{requestorEmail}")]
         public async Task<IActionResult> Accept(string transactionId, string requestorEmail)
         {
@@ -114,6 +142,34 @@ namespace AirandWebAPI.Controllers
                     if (response)
                         return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, ResponseMessage.SUCCESSFUL));
                     return Ok(new GenericResponse<string>(false, "Order is no longer available", ResponseMessage.FAILED));
+                }
+                else
+                {
+                    ErrorResponse errorResponse = new ErrorResponse(false, "Validation failed for one or more of [order identifier, customer email, rider identifier]", ResponseMessage.FAILED);
+                    return BadRequest(errorResponse);
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+                return StatusCode(500, exceptionHandler);
+
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet("assign/{orderId}/{riderId}")]
+        public async Task<IActionResult> AssingOrderToRider(string orderId, string riderId)
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(orderId) && !string.IsNullOrWhiteSpace(riderId))
+                {
+
+                    bool response = await _orderService.AssingOrderToRider(orderId, riderId);
+                    if (response)
+                        return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, ResponseMessage.SUCCESSFUL));
+                    return Ok(new GenericResponse<string>(false, "Error assinging order to rider", ResponseMessage.FAILED));
                 }
                 else
                 {
