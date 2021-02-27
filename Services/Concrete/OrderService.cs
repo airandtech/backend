@@ -61,7 +61,10 @@ namespace AirandWebAPI.Services.Concrete
             var dispatchTask = processDispatch(model, transactionId);
 
             await Task.WhenAll(dispatchTask);
-            return new DispatchResponse(model.PickUp.Name, totalAmount, "", transactionId);
+
+            List<int> orderIds = orders.Select(x => x.Id).ToList();
+
+            return new DispatchResponse(model.PickUp.Name, totalAmount, "", transactionId, orderIds);
         }
 
         public async Task<bool> Accept(string transactionId, string requestorEmail, int riderId)
@@ -229,18 +232,19 @@ namespace AirandWebAPI.Services.Concrete
                 //create invoice 
                 Invoice invoice = new Invoice(totalAmount, model.PickUp.Email, OrderStatus.Pending, transactionId);
                 invoice.DateCreated = DateTime.Now;
-
+                
+                List<int> orderIds = orders.Select(x => x.Id).ToList();
                 if (orders.Count == 1) invoice.OrderId = orders.FirstOrDefault().Id;
                 else{
-                    List<int> ids = orders.Select(x => x.Id).ToList();
-                    invoice.OrderIds = String.Join(',', ids);
+                    invoice.OrderIds = String.Join(',', orderIds);
                     invoice.TransactionId = transactionId;
                 } 
 
                 _unitOfWork.Invoices.Add(invoice);
                 await _unitOfWork.Complete();
 
-                return new DispatchResponse(model.PickUp.Name, totalAmount, "", transactionId);
+
+                return new DispatchResponse(model.PickUp.Name, totalAmount, "", transactionId, orderIds);
             }
             return null;
         }
