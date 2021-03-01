@@ -69,14 +69,14 @@ namespace AirandWebAPI.Controllers
             {
                 if (!String.IsNullOrWhiteSpace(orderId))
                 {
-                    GenericResponse<OrderTrackingResponse> response =  _locationService.TrackOrder(orderId);
+                    GenericResponse<OrderTrackingResponse> response = _locationService.TrackOrder(orderId);
                     if (response.status)
                         return Ok(new GenericResponse<OrderTrackingResponse>(true, ResponseMessage.SUCCESSFUL, response.data));
-                    return Ok(new GenericResponse<string>(false, ResponseMessage.FAILED, "Failed"));
+                    return Ok(new GenericResponse<string>(false, response.message, ResponseMessage.FAILED));
                 }
                 else
                 {
-                    ErrorResponse errorResponse = new ErrorResponse(false, "Invalid Order Id", ResponseMessage.BAD_REQUEST);
+                    ErrorResponse errorResponse = new ErrorResponse(false, "Order Id is required", ResponseMessage.BAD_REQUEST);
                     return BadRequest(errorResponse);
                 }
             }

@@ -41,33 +41,38 @@ namespace AirandWebAPI.Services.Concrete
             GenericResponse<OrderTrackingResponse> response =
                 new GenericResponse<OrderTrackingResponse>(false, ResponseMessage.ERROR_OCCURRED, new OrderTrackingResponse());
             var order = _unitOfWork.Orders.Get(int.Parse(orderId));
-            
-            if (order != null)
+
+            if (order == null)
             {
-                var rider = _unitOfWork.Riders.SingleOrDefault(x => x.UserId.Equals(int.Parse(order.RiderId)));
-                if(rider != null){
-                    var pickUpAndDelivery = 
-                        _unitOfWork.DispatchInfo.Find(x => new int[2]{order.PickUpAddressId, order.DeliveryAddressId}.Contains(x.Id));
-
-                    var delivery = _unitOfWork.Regions
-                        .SingleOrDefault(x => x.AreaCode.Equals(pickUpAndDelivery.FirstOrDefault(x => x.Id.Equals(order.DeliveryAddressId)).AreaCode));
-
-                    // var pickup = _unitOfWork.Regions
-                    //     .SingleOrDefault(x => x.AreaCode.Equals(pickUpAndDelivery.FirstOrDefault(x => x.Id.Equals(order.PickUpAddressId)).AreaCode));
-                    
-                    order.PickUp = pickUpAndDelivery.FirstOrDefault(x => x.Id.Equals(order.PickUpAddressId));
-                    order.Delivery = pickUpAndDelivery.FirstOrDefault(x => x.Id.Equals(order.DeliveryAddressId));
-                    
-                    var user = _unitOfWork.Users.Get(rider.UserId);
-                    rider.User = user;
-
-                    OrderTrackingResponse orderTracking = new OrderTrackingResponse(order, delivery ,rider);
-
-                    return new GenericResponse<OrderTrackingResponse>(true, ResponseMessage.SUCCESSFUL, orderTracking);
-                }
+                response.message = "Invalid Order Id";
+                return response;
             }
 
-            return response;
+            var rider = _unitOfWork.Riders.SingleOrDefault(x => x.UserId.Equals(int.Parse(order.RiderId)));
+
+            if (rider == null)
+            {
+                response.message = "Order hasn't been assigned to a rider";
+                return response;
+            }
+            // var pickUpAndDelivery =
+            //     _unitOfWork.DispatchInfo.Find(x => new int[2] { order.PickUpAddressId, order.DeliveryAddressId }.Contains(x.Id));
+
+            var deliveryInfo = _unitOfWork.DispatchInfo.Find(x => x.Id.Equals(order.DeliveryAddressId)).FirstOrDefault();  
+
+            var delivery = _unitOfWork.Regions
+                .SingleOrDefault(x => x.AreaCode.Equals(deliveryInfo.AreaCode));
+
+            order.PickUp = _unitOfWork.DispatchInfo.Find(x => x.Id.Equals(order.PickUpAddressId)).FirstOrDefault();
+            order.Delivery = deliveryInfo;
+
+            var user = _unitOfWork.Users.Get(rider.UserId);
+            rider.User = user;
+
+            OrderTrackingResponse orderTracking = new OrderTrackingResponse(order, delivery, rider);
+
+            return new GenericResponse<OrderTrackingResponse>(true, ResponseMessage.SUCCESSFUL, orderTracking);
+
         }
     }
 }
