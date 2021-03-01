@@ -48,13 +48,14 @@ namespace AirandWebAPI.Services.Concrete
                 return response;
             }
 
-            var rider = _unitOfWork.Riders.SingleOrDefault(x => x.UserId.Equals(int.Parse(order.RiderId)));
-
-            if (rider == null)
+            if (order.RiderId == null)
             {
                 response.message = "Order hasn't been assigned to a rider";
                 return response;
             }
+
+            var rider = _unitOfWork.Riders.Find(x => x.UserId.Equals(int.Parse(order.RiderId))).FirstOrDefault();
+            
             // var pickUpAndDelivery =
             //     _unitOfWork.DispatchInfo.Find(x => new int[2] { order.PickUpAddressId, order.DeliveryAddressId }.Contains(x.Id));
 
