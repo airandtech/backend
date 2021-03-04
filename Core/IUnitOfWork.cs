@@ -15,6 +15,7 @@ namespace AirandWebAPI.Core
         IOtpRepository Otps { get; }
         ICompanyRepository Companies { get; }
         IDispatchManagerRepository DispatchManagers { get; }
+        IMerchantRepository Merchants { get; }
         Task<int> Complete();
     }
 }

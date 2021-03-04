@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.EntityFrameworkCore.SqlServer;
 using AutoMapper;
 using AirandWebAPI.Helpers;
 using AirandWebAPI.Services.Concrete;
@@ -20,6 +19,7 @@ using Microsoft.Extensions.FileProviders;
 using System.IO;
 using AirandWebAPI.Models.Company;
 using AirandWebAPI.Models;
+using AirandWebAPI.Models.Merchant;
 
 namespace AirandWebAPI
 {
@@ -55,6 +55,7 @@ namespace AirandWebAPI
             services.AddScoped<IRegionService, RegionService>();
             services.AddScoped<ILocationService, LocationService>();
             services.AddScoped<ICompanyService, CompanyService>();
+            services.AddScoped<IMerchantService, MerchantService>();
 
 
             services.AddScoped<INotification, NotificationService>();
@@ -70,6 +71,7 @@ namespace AirandWebAPI
             services.AddScoped<IValidation<Coordinates>, CoordinatesDataValidation>();
             services.AddScoped<IValidation<ChangeStatusVM>, ChangeStatusValidation>();
             services.AddScoped<IValidation<CreateCompanyVM>, CreateCompanyValidation>();
+            services.AddScoped<IValidation<RegisterMerchantVM>, RegisterMerchantValidation>();
             services.AddScoped<IValidation<AddDispatchManagerVM>, AddDispatchManagerValidation>();
             services.AddScoped<IValidation<AddRidersVM>, AddRidersValidation>();
             services.AddScoped<IValidation<EmailVM>, SendEmailValidation>();

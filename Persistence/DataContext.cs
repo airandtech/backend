@@ -22,5 +22,6 @@ namespace AirandWebAPI.Persistence
         public virtual DbSet<Otp> Otps { get; set; }
         public virtual DbSet<Company> Companies { get; set; }
         public virtual DbSet<DispatchManager> DispatchManagers { get; set; }
+        public virtual DbSet<Merchant> Merchants { get; set; }
     }
 }
