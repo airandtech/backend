@@ -83,11 +83,11 @@ namespace AirandWebAPI.Services.Concrete
                     var pickupDetails = _unitOfWork.DispatchInfo.Get(item.PickUpAddressId);
                     var deliveryDetails = _unitOfWork.DispatchInfo.Get(item.DeliveryAddressId);
 
-                    var pickUpRegion = _unitOfWork.Regions.Find(x => x.Code.Equals(pickupDetails.RegionCode)).FirstOrDefault();
-                    var deliveryRegion = _unitOfWork.Regions.Find(x => x.Code.Equals(deliveryDetails.RegionCode)).FirstOrDefault();
+                    // var pickUpRegion = _unitOfWork.Regions.Find(x => x.Code.Equals(pickupDetails.RegionCode)).FirstOrDefault();
+                    // var deliveryRegion = _unitOfWork.Regions.Find(x => x.Code.Equals(deliveryDetails.RegionCode)).FirstOrDefault();
 
-                    var pickUpCoord = new Coordinates(pickUpRegion.Latitude, pickUpRegion.Longitude);
-                    var deliveryCoord = new Coordinates(deliveryRegion.Latitude, deliveryRegion.Longitude);
+                    var pickUpCoord = new Coordinates(item.PickUp.Lat, item.PickUp.Lng);
+                    var deliveryCoord = new Coordinates(item.Delivery.Lat, item.Delivery.Lng);
 
                     DirectionResponse response = await DistanceCalculator.Process(pickUpCoord, deliveryCoord);
                     var distanceAndDuration = response.routes[0].legs[0];
@@ -385,7 +385,7 @@ namespace AirandWebAPI.Services.Concrete
         private async Task processDispatch(RideOrderRequest model, string transactionId)
         {
             //get customer details
-            var region = _unitOfWork.Regions.Find(x => x.AreaCode.Equals(model.PickUp.AreaCode)).FirstOrDefault();
+            //var region = _unitOfWork.Regions.Find(x => x.AreaCode.Equals(model.PickUp.AreaCode)).FirstOrDefault();
 
             //get distance between cutomer and riders
             //(List<DriverCoordinates> driverCoords, DistanceMatrixResponse distanceMatrix) = await getDistanceFromCustomerToRiders(region);
@@ -396,7 +396,7 @@ namespace AirandWebAPI.Services.Concrete
             foreach (var item in chunkedRiders)
             {
                 DistanceMatrixResponse distanceMatrix =
-               await DistanceCalculator.Process(item, region.Latitude, region.Longitude);
+               await DistanceCalculator.Process(item, model.PickUp.Lat, model.PickUp.Lng);
                 List<DriverDistance> top10Distances = getTopClosestRiders(item, distanceMatrix, 10);
                 if (top10Distances != null)
                 {
@@ -629,7 +629,8 @@ namespace AirandWebAPI.Services.Concrete
                 await _unitOfWork.Complete();
                 order.DeliveryAddressId = deliverDetails.Id;
 
-                order.Cost = PriceCalculator.Process(model.PickUp.RegionCode, item.RegionCode); ///refactor
+                //order.Cost = PriceCalculator.Process(model.PickUp.RegionCode, item.RegionCode); ///refactor
+                order.Cost = decimal.Parse(item.Cost);
                 totalAmount += order.Cost;
                 order.Status = OrderStatus.Created;
                 order.DateCreated = DateTime.UtcNow + TimeSpan.FromHours(1);

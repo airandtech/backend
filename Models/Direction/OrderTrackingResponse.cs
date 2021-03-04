@@ -4,9 +4,9 @@ namespace AirandWebAPI.Models.Direction
 {
     public class OrderTrackingResponse{
         public OrderTrackingResponse(){}
-        public OrderTrackingResponse(Order order, Region delivery, Rider rider){
+        public OrderTrackingResponse(Order order, Rider rider){
             this.rider = new Coords(rider.Latitude, rider.Longitude);
-            this.destination = new Coords(delivery.Latitude, delivery.Longitude);
+            this.destination = new Coords(order.Delivery.Lat, order.Delivery.Lng);
             this.deliveryAddress = order.Delivery.Address;
             this.pickUpAddress = order.PickUp.Address;
             this.deliveryStatus = order.Status;

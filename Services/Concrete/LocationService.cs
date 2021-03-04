@@ -61,8 +61,8 @@ namespace AirandWebAPI.Services.Concrete
 
             var deliveryInfo = _unitOfWork.DispatchInfo.Find(x => x.Id.Equals(order.DeliveryAddressId)).FirstOrDefault();  
 
-            var delivery = _unitOfWork.Regions
-                .SingleOrDefault(x => x.AreaCode.Equals(deliveryInfo.AreaCode));
+            // var delivery = _unitOfWork.Regions
+            //     .SingleOrDefault(x => x.AreaCode.Equals(deliveryInfo.AreaCode));
 
             order.PickUp = _unitOfWork.DispatchInfo.Find(x => x.Id.Equals(order.PickUpAddressId)).FirstOrDefault();
             order.Delivery = deliveryInfo;
@@ -70,7 +70,7 @@ namespace AirandWebAPI.Services.Concrete
             var user = _unitOfWork.Users.Get(rider.UserId);
             rider.User = user;
 
-            OrderTrackingResponse orderTracking = new OrderTrackingResponse(order, delivery, rider);
+            OrderTrackingResponse orderTracking = new OrderTrackingResponse(order, rider);
 
             return new GenericResponse<OrderTrackingResponse>(true, ResponseMessage.SUCCESSFUL, orderTracking);
 
