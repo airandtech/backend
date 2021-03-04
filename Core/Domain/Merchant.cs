@@ -6,6 +6,7 @@ namespace AirandWebAPI.Core.Domain
         public string Address { get; set; }
         public string OwnerName { get; set; }
         public string OwnerPhone { get; set; }
+        public string OwnerEmail { get; set; }
         public string ProductCategory { get; set; }
         public string DeliveryFrequency { get; set; }
         public string AvgMonthlyDelivery { get; set; }

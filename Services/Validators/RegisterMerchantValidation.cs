@@ -30,7 +30,9 @@ namespace TheHangout.Services
             if (string.IsNullOrWhiteSpace(model.OwnerName))
                 validationInfo.addInvalidationNarration("Name of business owner is required");
             if (string.IsNullOrWhiteSpace(model.OwnerPhone))
-                validationInfo.addInvalidationNarration("Phone number for business owner is required");
+                validationInfo.addInvalidationNarration("Phone number of business owner is required");
+            if (string.IsNullOrWhiteSpace(model.OwnerEmail))
+                validationInfo.addInvalidationNarration("Email of business owner is required");
             if (string.IsNullOrWhiteSpace(model.ProductCategory))
                 validationInfo.addInvalidationNarration("Product category is required");
 
