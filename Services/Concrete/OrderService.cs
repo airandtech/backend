@@ -184,13 +184,22 @@ namespace AirandWebAPI.Services.Concrete
             return userOrders;
         }
 
-        public bool ChangeStatus(ChangeStatusVM model)
+        public async Task<bool> ChangeStatus(ChangeStatusVM model)
         {
             var order = _unitOfWork.Orders.Get(int.Parse(model.orderId));
             if (order != null)
             {
                 order.Status = OrderStatus.GetStatusFromCode(model.status);
-                _unitOfWork.Complete();
+                var pickup = _unitOfWork.DispatchInfo.Get(order.PickUpAddressId);
+                if (order.Status.Equals("02"))
+                {
+                    await sendMailToCustomer(pickup.Email, pickup.Name, "Picked");
+                }
+                if (order.Status.Equals("00"))
+                {
+                    await sendMailToCustomer(pickup.Email, pickup.Name, "Complete");
+                }
+                await _unitOfWork.Complete();
                 return true;
             }
             return false;
@@ -232,36 +241,41 @@ namespace AirandWebAPI.Services.Concrete
                 //create invoice 
                 Invoice invoice = new Invoice(totalAmount, model.PickUp.Email, OrderStatus.Pending, transactionId);
                 invoice.DateCreated = DateTime.Now;
-                
+
                 List<int> orderIds = orders.Select(x => x.Id).ToList();
                 if (orders.Count == 1) invoice.OrderId = orders.FirstOrDefault().Id;
-                else{
+                else
+                {
                     invoice.OrderIds = String.Join(',', orderIds);
                     invoice.TransactionId = transactionId;
-                } 
+                }
 
                 _unitOfWork.Invoices.Add(invoice);
-                await _unitOfWork.Complete();
+                var saveTask = _unitOfWork.Complete();
 
+                var notifyCustomerTask = sendMailToCustomer(model.PickUp.Email, model.PickUp.Name, "Created");
+
+                await Task.WhenAll(saveTask, notifyCustomerTask);
 
                 return new DispatchResponse(model.PickUp.Name, totalAmount, "", transactionId, orderIds);
             }
             return null;
         }
-       
+
         public async Task<bool> AssingOrderToRider(string orderId, string riderId)
         {
             var order = _unitOfWork.Orders.Get(int.Parse(orderId));
-            if(order != null){
+            if (order != null)
+            {
                 order.RiderId = riderId;
                 order.Status = OrderStatus.Pending;
                 await _unitOfWork.Complete();
-                await sendMailToCustomer(order.RequestorIdentifier, new List<Order>{order},int.Parse(orderId));
+                await sendMailToCustomer(order.RequestorIdentifier, new List<Order> { order }, int.Parse(orderId));
                 return true;
             }
             return false;
         }
-       
+
         private async Task sendMailToCustomer(string requestorEmail, List<Order> orders, int riderId)
         {
             try
@@ -582,7 +596,7 @@ namespace AirandWebAPI.Services.Concrete
         private async Task sendNotificationToCompany(int userId)
         {
             var user = _unitOfWork.Users.Get(userId);
-            if(user == null)  return;
+            if (user == null) return;
 
             string orderLink = "https://partners.airand.net/orders";
 
@@ -645,5 +659,37 @@ namespace AirandWebAPI.Services.Concrete
             return (totalAmount, transactionId, orders);
         }
 
+        private async Task sendMailToCustomer(string email, string name, string type)
+        {
+            string title = "";
+            string template = "";
+            var folderName = Path.Combine("Resources", "EmailTemplate");
+            var pathToEmailTemplate = Path.Combine(Directory.GetCurrentDirectory(), folderName);
+
+            switch (type)
+            {
+                case "Created":
+                    title = "Airand: Order Received";
+                    template = "OrderCreated.html";
+                    break;
+                case "Complete":
+                    title = "Airand: Order Completed";
+                    template = "OrderCompleted.html";
+                    break;
+                case "Picked":
+                    title = "Airand: Order Picked";
+                    template = "OrderPicked.html";
+                    break;
+                default:
+                    break;
+            }
+
+            using (StreamReader sr = new StreamReader(pathToEmailTemplate + "/" + template))
+            {
+                var line = await sr.ReadToEndAsync();
+
+                await _mailer.SendMailAsync(email, name, title, line);
+            }
+        }
     }
 }

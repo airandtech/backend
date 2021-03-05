@@ -18,7 +18,7 @@ namespace AirandWebAPI.Services.Contract
         Task<bool> ReceivePayment(FluttterwaveResponse response);
         Task test();
         RiderOrders GetOrders(int userId);
-        bool ChangeStatus(ChangeStatusVM model);
+        Task<bool> ChangeStatus(ChangeStatusVM model);
         Task<bool> AssingOrderToRider(string orderId, string riderId);
         UserOrdersVM GetOrder(string transactionId);
         List<Order> GetOrdersForCompany(int limit, int offset, int userId);

@@ -287,7 +287,7 @@ namespace AirandWebAPI.Controllers
         }
 
         [HttpPost("orders/status/change")]
-        public IActionResult ChangeStatus([FromBody] ChangeStatusVM model)
+        public async Task<IActionResult> ChangeStatus([FromBody] ChangeStatusVM model)
         {
             try
             {
@@ -296,7 +296,7 @@ namespace AirandWebAPI.Controllers
                 ValidationInfo validationInfo = _changeStatusValidation.Validate(model);
                 if (validationInfo.isValid())
                 {
-                    bool isSuccessful = _orderService.ChangeStatus(model);
+                    bool isSuccessful = await _orderService.ChangeStatus(model);
                     if (isSuccessful)
                     {
                         return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, ResponseMessage.SUCCESSFUL));
