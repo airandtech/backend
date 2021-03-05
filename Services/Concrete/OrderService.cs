@@ -254,6 +254,7 @@ namespace AirandWebAPI.Services.Concrete
             var order = _unitOfWork.Orders.Get(int.Parse(orderId));
             if(order != null){
                 order.RiderId = riderId;
+                order.Status = OrderStatus.Pending;
                 await _unitOfWork.Complete();
                 await sendMailToCustomer(order.RequestorIdentifier, new List<Order>{order},int.Parse(orderId));
                 return true;
