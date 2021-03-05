@@ -265,10 +265,10 @@ namespace AirandWebAPI.Services.Concrete
         public async Task<bool> AssignOrderToRider(string orderId, string riderId)
         {
             var order = _unitOfWork.Orders.Get(int.Parse(orderId));
-            var rider = _unitOfWork.Orders.Get(int.Parse(riderId));
+            var rider = _unitOfWork.Riders.Get(int.Parse(riderId));
             if (order != null && rider != null)
             {
-                order.RiderId = rider.RiderId;
+                order.RiderId = rider.UserId.ToString();
                 order.Status = OrderStatus.Pending;
                 await _unitOfWork.Complete();
                 await sendMailToCustomer(order.RequestorIdentifier, new List<Order> { order }, int.Parse(orderId));
