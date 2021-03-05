@@ -159,14 +159,14 @@ namespace AirandWebAPI.Controllers
 
         [AllowAnonymous]
         [HttpGet("assign/{orderId}/{riderId}")]
-        public async Task<IActionResult> AssingOrderToRider(string orderId, string riderId)
+        public async Task<IActionResult> AssignOrderToRider(string orderId, string riderId)
         {
             try
             {
                 if (!string.IsNullOrWhiteSpace(orderId) && !string.IsNullOrWhiteSpace(riderId))
                 {
 
-                    bool response = await _orderService.AssingOrderToRider(orderId, riderId);
+                    bool response = await _orderService.AssignOrderToRider(orderId, riderId);
                     if (response)
                         return Ok(new GenericResponse<string>(true, ResponseMessage.SUCCESSFUL, ResponseMessage.SUCCESSFUL));
                     return Ok(new GenericResponse<string>(false, "Error assinging order to rider", ResponseMessage.FAILED));

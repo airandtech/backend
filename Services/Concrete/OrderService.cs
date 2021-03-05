@@ -262,12 +262,13 @@ namespace AirandWebAPI.Services.Concrete
             return null;
         }
 
-        public async Task<bool> AssingOrderToRider(string orderId, string riderId)
+        public async Task<bool> AssignOrderToRider(string orderId, string riderId)
         {
             var order = _unitOfWork.Orders.Get(int.Parse(orderId));
-            if (order != null)
+            var rider = _unitOfWork.Orders.Get(int.Parse(riderId));
+            if (order != null && rider != null)
             {
-                order.RiderId = riderId;
+                order.RiderId = rider.RiderId;
                 order.Status = OrderStatus.Pending;
                 await _unitOfWork.Complete();
                 await sendMailToCustomer(order.RequestorIdentifier, new List<Order> { order }, int.Parse(orderId));
