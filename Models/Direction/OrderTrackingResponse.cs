@@ -7,6 +7,7 @@ namespace AirandWebAPI.Models.Direction
         public OrderTrackingResponse(Order order, Rider rider){
             this.rider = new Coords(rider.Latitude, rider.Longitude);
             this.destination = new Coords(order.Delivery.Lat, order.Delivery.Lng);
+            this.pickup = new Coords(order.PickUp.Lat, order.PickUp.Lng);
             this.deliveryAddress = order.Delivery.Address;
             this.pickUpAddress = order.PickUp.Address;
             this.deliveryStatus = order.Status;
@@ -16,6 +17,7 @@ namespace AirandWebAPI.Models.Direction
         }
         public Coords rider { get; set; }
         public Coords destination { get; set; }
+        public Coords pickup { get; set; }
         public string pickUpAddress { get; set; }
         public string deliveryAddress { get; set; }
         public string deliveryStatus { get; set; }

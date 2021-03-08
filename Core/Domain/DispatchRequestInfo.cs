@@ -23,6 +23,8 @@ namespace AirandWebAPI
             this.Email = data.Email;
             this.Name = data.Name;
             this.Phone = data.Phone;
+            this.Lat = data.Lat;
+            this.Lng = data.Lng;
             // this.RegionCode = data.RegionCode;
             // this.AreaCode = data.AreaCode;
             this.Description = data.Description;
