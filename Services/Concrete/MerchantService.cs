@@ -1,3 +1,4 @@
+using System.Linq;
 using AirandWebAPI.Services.Contract;
 using AirandWebAPI.Core;
 using Microsoft.Extensions.Options;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 using AirandWebAPI.Core.Domain;
 using System;
 using System.IO;
+using System.Collections.Generic;
 
 namespace AirandWebAPI.Services.Concrete
 {
@@ -23,6 +25,15 @@ namespace AirandWebAPI.Services.Concrete
             _mailer = mailer;
         }
 
+        public List<Merchant> GetAll()
+        {
+            return _unitOfWork.Merchants.GetAll().ToList();
+        }
+
+        public Merchant GetById(int id)
+        {
+            return _unitOfWork.Merchants.Get(id);
+        }
 
         public async Task<Merchant> Create(Merchant merchant)
         {

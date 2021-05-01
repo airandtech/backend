@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using AirandWebAPI.Core.Domain;
 using AirandWebAPI.Models.Direction;
 using AirandWebAPI.Models.Merchant;
+using System.Collections.Generic;
 
 namespace AirandWebAPI.Controllers
 {
@@ -31,6 +32,44 @@ namespace AirandWebAPI.Controllers
             _merchantService = merchantService;
             _mapper = mapper;
             _registerMerchantValidation = registerMerchantValidation;
+        }
+
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            try
+            {
+                var merchants = _merchantService.GetAll();
+                if (merchants != null)
+                    return Ok(new GenericResponse<List<Merchant>>(true, ResponseMessage.SUCCESSFUL, merchants));
+
+                return BadRequest(new GenericResponse<Merchant>(false, ResponseMessage.FAILED, null));
+
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+                return StatusCode(500, exceptionHandler);
+            }
+        }
+
+        [HttpGet("{id}")]
+        public IActionResult GetByID(int id)
+        {
+            try
+            {
+                var merchant = _merchantService.GetById(id);
+                if (merchant != null)
+                    return Ok(new GenericResponse<Merchant>(true, ResponseMessage.SUCCESSFUL, merchant));
+
+                return BadRequest(new GenericResponse<Merchant>(false, ResponseMessage.FAILED, null));
+
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+                return StatusCode(500, exceptionHandler);
+            }
         }
 
         [HttpPost()]
