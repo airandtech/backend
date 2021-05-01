@@ -44,6 +44,16 @@ namespace AirandWebAPI.Services.Concrete
             _mapper = mapper;
         }
 
+        public List<Company> GetAll()
+        {
+            return _unitOfWork.Companies.GetAll().ToList();
+        }
+
+        public Company GetById(int id)
+        {
+            return _unitOfWork.Companies.Get(id);
+        }
+
         public async Task<Company> Create(Company company, int UserId)
         {
             var prevCompany = _unitOfWork.Companies.Find(x => x.UserId.Equals(UserId));
@@ -237,7 +247,7 @@ namespace AirandWebAPI.Services.Concrete
             HttpClient client = new HttpClient();
             client.BaseAddress = new Uri("https://api.flutterwave.com/");
             client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add( new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
             ResolveAccountRequest jsonObject = new ResolveAccountRequest(model.AccountNumber, model.BankCode);
@@ -249,15 +259,17 @@ namespace AirandWebAPI.Services.Concrete
             HttpResponseMessage response = await client.PostAsJsonAsync("v3/accounts/resolve", jsonObject);
             //response.EnsureSuccessStatusCode();
 
-            if(response.StatusCode == HttpStatusCode.OK){
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
                 string responseBody = await response.Content.ReadAsStringAsync();
 
                 ResolveAccountRootResponse resolveResponse = JsonConvert.DeserializeObject<ResolveAccountRootResponse>(responseBody);
-                if(resolveResponse.status.Equals("success")){
+                if (resolveResponse.status.Equals("success"))
+                {
                     return resolveResponse.data;
                 }
             }
-            
+
             return null;
         }
         private Company updateCompany(Company existingCompany, CreateCompanyVM update)
@@ -310,6 +322,5 @@ namespace AirandWebAPI.Services.Concrete
             var resp = _unitOfWork.Complete();
             return existingManager;
         }
-
     }
 }

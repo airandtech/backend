@@ -10,6 +10,8 @@ namespace AirandWebAPI.Services.Contract
 
     public interface ICompanyService
     {
+        List<Company> GetAll();
+        Company GetById(int id);
         Task<Company> Create(Company company, int UserId);
         Task<bool> AddDispatchManagers(AddDispatchManagerVM model, int UserId);
         Task<bool> AddRiders(AddRidersVM model, int UserId);

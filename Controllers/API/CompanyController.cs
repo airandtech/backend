@@ -10,6 +10,7 @@ using AirandWebAPI.Helpers;
 using AirandWebAPI.Models;
 using System;
 using AirandWebAPI.Exceptions;
+using System.Collections.Generic;
 
 namespace AirandWebAPI.Controllers
 {
@@ -36,6 +37,44 @@ namespace AirandWebAPI.Controllers
             _createCompanyValidation = createCompanyValidation;
             _addDispatchManagerValidation = addDispatchManagerValidation;
             _addRidersValidation = addRidersValidation;
+        }
+
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            try
+            {
+                var companies = _companyService.GetAll();
+                if (companies != null)
+                    return Ok(new GenericResponse<List<Company>>(true, ResponseMessage.SUCCESSFUL, companies));
+
+                return BadRequest(new GenericResponse<Merchant>(false, ResponseMessage.FAILED, null));
+
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+                return StatusCode(500, exceptionHandler);
+            }
+        }
+
+        [HttpGet("{id}")]
+        public IActionResult GetByID(int id)
+        {
+            try
+            {
+                var company = _companyService.GetById(id);
+                if (company != null)
+                    return Ok(new GenericResponse<Company>(true, ResponseMessage.SUCCESSFUL, company));
+
+                return BadRequest(new GenericResponse<Company>(false, ResponseMessage.FAILED, null));
+
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler exceptionHandler = new ExceptionHandler(false, ex, ResponseMessage.EXCEPTION_OCCURRED);
+                return StatusCode(500, exceptionHandler);
+            }
         }
 
         [HttpPost()]
