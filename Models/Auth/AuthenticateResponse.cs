@@ -9,6 +9,7 @@ namespace AirandWebAPI.Models.Auth
         public string LastName { get; set; }
         public string Username { get; set; }
         public string Token { get; set; }
+        public string Role { get; set; }
         public bool IsSetupComplete { get; set; }
 
 
@@ -20,6 +21,7 @@ namespace AirandWebAPI.Models.Auth
             Username = user.Username;
             Token = token;
             IsSetupComplete = isSetupComplete;
+            Role = user.Role;
         }
     }
 }
