@@ -114,12 +114,22 @@ namespace AirandWebAPI.Services.Concrete
                     user.Role = Role.Rider;
                     AuthenticateResponse authResponse = await _userService.Create(user, item.Phone);
 
-                    var existingRider = _unitOfWork.Riders.Find(x => x.UserId.Equals(authResponse.Id));
-                    if (existingRider != null || existingRider.Count() > 0)
+                    int userId;
+                    if (authResponse == null)
+                    {
+                        userId = _unitOfWork.Users.SingleOrDefault(x => x.Phone.Equals(item.Phone)).Id;
+                    }
+                    else
+                    {
+                        userId = authResponse.Id;
+                    }
+
+                    var existingRider = _unitOfWork.Riders.SingleOrDefault(x => x.UserId.Equals(userId));
+                    if (existingRider != null)
                         continue;
 
                     rider = new Rider();
-                    rider.UserId = authResponse.Id;
+                    rider.UserId = userId;
                     rider.CreatedBy = UserId;
                     rider.DateCreated = DateTime.UtcNow.AddHours(1);
                     _unitOfWork.Riders.Add(rider);
@@ -175,20 +185,23 @@ namespace AirandWebAPI.Services.Concrete
 
                 var company = _unitOfWork.Companies.Find(x => x.UserId.Equals(user.Id)).FirstOrDefault();
                 if (company != null)
+                {
                     userCompanyRider.company = company;
 
-                // var riders = _unitOfWork.Users.Find(x => x.CreatedBy.Equals(UserId) && x.Role.Equals(Role.Rider)).ToList();
-                // var riders = _unitOfWork.Riders.Find(x => x.CreatedBy.Equals(UserId)).ToList();
+                    var managers = _unitOfWork.DispatchManagers.Find(x => x.CompanyId.Equals(company.Id)).ToList();
+                    if (managers != null && managers.Count() > 0)
+                    {
+                        var managerDto = _mapper.Map<IEnumerable<DispatchManagerDto>>(managers);
+                        userCompanyRider.managers = managerDto;
+                    }
+                }
+
                 var riders = _unitOfWork.Riders.GetAllRidersWithUsers().Where(x => x.CreatedBy.Equals(UserId)).ToList();
-                if (user != null)
+                if (riders != null && riders.Count() > 0)
                 {
-                    // userCompanyRider.riders = _mapper.Map<IEnumerable<UserDto>>(riders);
                     userCompanyRider.riders = riders;
                 }
 
-                var managers = _unitOfWork.DispatchManagers.Find(x => x.CompanyId.Equals(company.Id)).ToList();
-                var managerDto = _mapper.Map<IEnumerable<DispatchManagerDto>>(managers);
-                userCompanyRider.managers = managerDto;
             }
 
             return userCompanyRider;
